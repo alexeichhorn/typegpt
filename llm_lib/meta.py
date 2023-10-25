@@ -15,7 +15,7 @@ inflect_engine = inflect.engine()
 @dataclass_transform(kw_only_default=True, field_specifiers=(LLMArrayOutput, LLMOutput, ClassPlaceholder))
 class LLMMeta(ABCMeta):
     def __new__(mcls: type, name: str, bases: tuple[type, ...], namespace: dict[str, Any], **kwargs: Any) -> "LLMMeta":
-        cls = super().__new__(mcls, name=name, bases=bases, namespace=namespace, **kwargs)
+        cls = super().__new__(mcls, name, bases, namespace, **kwargs)
         # print(name)
         # print(namespace)
         annotations: dict[str, type] = namespace.get("__annotations__", {})
