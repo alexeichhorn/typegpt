@@ -1,0 +1,4 @@
+typing_extensions>=4.1.0
+inflect>=7.0.0
+tiktoken>=0.5.0
+openai>=0.28.0

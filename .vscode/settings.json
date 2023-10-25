@@ -1,0 +1,36 @@
+{
+    "editor.formatOnSave": true,
+    "search.followSymlinks": false,
+    "files.trimTrailingWhitespace": true,
+    "files.trimFinalNewlines": true,
+    "files.insertFinalNewline": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [
+      "--disable=C0111",
+      "--disable=no-name-in-module",
+      "--max-line-length=120",
+      "--rcfile",
+      "${workspaceFolder}/setup.cfg"
+    ],
+    "isort.args": ["-l", "140"],
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "python.formatting.provider": "black",
+    "python.formatting.blackArgs": ["--line-length", "140"],
+    "python.linting.enabled": true,
+    "python.testing.pytestEnabled": true,
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": false
+      }
+    },
+    "python.analysis.extraPaths": [],
+    "search.exclude": {
+      "**/.vscode": true,
+      "**/.git": true
+    },
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true
+    },
+  }
