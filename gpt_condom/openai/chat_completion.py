@@ -192,7 +192,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
     @classmethod
     async def generate_output(
         cls,
-        model: OpenAIChatModel,
+        model: OpenAIChatModel | AzureChatModel,
         prompt: PromptTemplate[_Output],
         max_output_tokens: int,
         max_input_tokens: int | None = None,
@@ -208,13 +208,18 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         Calls OpenAI Chat API, generates assistant response, and fits it into the output class
         """
 
-        max_prompt_length = cls.max_tokens_of_model(model) - max_output_tokens
+        if isinstance(model, AzureChatModel):
+            model_type = model.base_model
+        else:
+            model_type = model
+
+        max_prompt_length = cls.max_tokens_of_model(model_type) - max_output_tokens
 
         if max_input_tokens:
             max_prompt_length = min(max_prompt_length, max_input_tokens)
 
         messages = prompt.generate_messages(
-            token_limit=max_prompt_length, token_counter=lambda messages: cls.num_tokens_from_messages(messages, model=model)
+            token_limit=max_prompt_length, token_counter=lambda messages: cls.num_tokens_from_messages(messages, model=model_type)
         )
 
         completion = await cls.generate_completion(

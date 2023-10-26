@@ -21,6 +21,7 @@ OpenAIChatModel = Literal[
 @dataclass
 class AzureChatModel:
     deployment_id: str
+    base_model: OpenAIChatModel  # only used for token counting
 
 
 @dataclass
