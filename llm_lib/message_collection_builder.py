@@ -1,11 +1,12 @@
+from __future__ import annotations
+
 import copy
-from typing import Callable, Generic, TypeVar
+from typing import TYPE_CHECKING, Callable, Generic, TypeVar
 
 from .exceptions import LLMTokenLimitExceeded
 from .prompt_builder import OutputPromptFactory
-from .prompt_definition.prompt_template import PromptTemplate
 
-Prompt = TypeVar("Prompt", bound=PromptTemplate)
+Prompt = TypeVar("Prompt", bound="PromptTemplate")
 
 # EncodedMessage = dict[str, dict[str, str] | str | None]
 EncodedMessage = dict[str, str]
@@ -53,3 +54,7 @@ class MessageCollectionFactory(Generic[Prompt]):
                 return generated_messages
 
         raise LLMTokenLimitExceeded(f"Prompt can't be reduced to fit within the token limit ({token_limit})")
+
+
+if TYPE_CHECKING:
+    from .prompt_definition.prompt_template import PromptTemplate

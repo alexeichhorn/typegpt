@@ -26,6 +26,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         """
 
         kwargs["model"] = model
+        kwargs["stream"] = False
 
         max_prompt_length = cls.max_tokens_of_model(model) - max_output_tokens
 
@@ -43,6 +44,8 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         completion = message.get("content", "")
 
         return prompt.Output.parse_response(completion)
+
+    # TODO: implement sync variant `create`
 
     @staticmethod
     def max_tokens_of_model(model: OpenAIChatModel) -> int:

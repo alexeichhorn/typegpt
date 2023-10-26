@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Callable, ClassVar, Generic, Protocol, TypeVar
 
 from ..base import BaseLLMResponse
 from ..fields import LLMArrayOutput
+from ..message_collection_builder import EncodedMessage, MessageCollectionFactory
 
 _Output = TypeVar("_Output", bound=BaseLLMResponse)
 
@@ -32,5 +33,5 @@ class PromptTemplate(Protocol[_Output]):  # , Generic[_Output]):
         return MessageCollectionFactory(self, token_counter=token_counter).generate_messages(token_limit=token_limit)
 
 
-if TYPE_CHECKING:
-    from ..message_collection_builder import EncodedMessage, MessageCollectionFactory
+# if TYPE_CHECKING:
+#     from ..message_collection_builder import EncodedMessage, MessageCollectionFactory
