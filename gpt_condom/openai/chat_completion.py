@@ -38,6 +38,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         user: str | None = None,
+        request_timeout: float | None = None,
         config: OpenAIConfig | AzureConfig | None = None,
     ) -> tuple[AsyncGenerator[ChatCompletionChunk, None]]:
         ...
@@ -60,6 +61,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         user: str | None = None,
+        request_timeout: float | None = None,
         config: OpenAIConfig | AzureConfig | None = None,
     ) -> ChatCompletionResult:
         ...
@@ -81,6 +83,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         user: str | None = None,
+        request_timeout: float | None = None,
         config: OpenAIConfig | AzureConfig | None = None,
     ) -> ChatCompletionResult | tuple[AsyncGenerator[ChatCompletionChunk, None]]:
         kwargs = {
@@ -124,6 +127,9 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         if user is not None:
             kwargs["user"] = user
 
+        if request_timeout is not None:
+            kwargs["request_timeout"] = request_timeout
+
         if config:
             kwargs = {**kwargs, **config.__dict__}
 
@@ -147,7 +153,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
     @classmethod
     async def generate_completion(
         cls,
-        model: OpenAIChatModel,
+        model: OpenAIChatModel | AzureChatModel,
         messages: list[dict],
         frequency_penalty: float | None = None,  # [-2, 2]
         function_call: FunctionCallBehavior | None = None,
@@ -160,6 +166,8 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         user: str | None = None,
+        request_timeout: float | None = None,
+        config: OpenAIConfig | AzureConfig | None = None,
     ) -> str:
         result = await cls.acreate(
             model=model,
@@ -175,6 +183,8 @@ class OpenAIChatCompletion(openai.ChatCompletion):
             temperature=temperature,
             top_p=top_p,
             user=user,
+            request_timeout=request_timeout,
+            config=config,
         )
 
         return result.choices[0].message.content or ""
@@ -191,6 +201,8 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         presence_penalty: float | None = None,  # [-2, 2]
         temperature: float | None = None,
         top_p: float | None = None,
+        request_timeout: float | None = None,
+        config: OpenAIConfig | AzureConfig | None = None,
     ) -> _Output:
         """
         Calls OpenAI Chat API, generates assistant response, and fits it into the output class
@@ -214,6 +226,8 @@ class OpenAIChatCompletion(openai.ChatCompletion):
             presence_penalty=presence_penalty,
             temperature=temperature,
             top_p=top_p,
+            request_timeout=request_timeout,
+            config=config,
         )
 
         return prompt.Output.parse_response(completion)
