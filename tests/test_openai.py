@@ -9,9 +9,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from llm_lib import BaseLLMResponse, PromptTemplate
-from llm_lib.openai import OpenAIChatCompletion
-from llm_lib.openai.chat_completion import OpenAIChatModel
+from gpt_condom import BaseLLMResponse, PromptTemplate
+from gpt_condom.openai import OpenAIChatCompletion
+from gpt_condom.openai.chat_completion import OpenAIChatModel
 
 
 class TestOpenAIChatCompletion:
@@ -43,7 +43,7 @@ class TestOpenAIChatCompletion:
         async def async_mock(*args, **kwargs):
             return {"choices": [{"message": {"content": "TITLE: This is a test completion\nCOUNT: 09"}}]}
 
-        mocker.patch("llm_lib.openai.chat_completion.openai.ChatCompletion.acreate", new=async_mock)
+        mocker.patch("gpt_condom.openai.chat_completion.openai.ChatCompletion.acreate", new=async_mock)
 
     @pytest.mark.asyncio
     async def test_mock_end_to_end(self, mock_openai_completion):

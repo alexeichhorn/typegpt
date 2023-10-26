@@ -8,7 +8,7 @@ from typing import Dict, List, Literal, Optional, Set, Tuple, Union
 
 import pytest
 
-from llm_lib.utils.type_checker import *
+from gpt_condom.utils.type_checker import *
 
 
 class TestHelpers:

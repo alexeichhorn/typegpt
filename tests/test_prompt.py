@@ -6,9 +6,9 @@ sys.path.insert(0, myPath + "/../")
 
 import pytest
 
-from llm_lib import BaseLLMResponse, LLMArrayOutput, LLMOutput
-from llm_lib.fields import ExamplePosition, LLMArrayOutputInfo
-from llm_lib.prompt_builder import OutputPromptFactory
+from gpt_condom import BaseLLMResponse, LLMArrayOutput, LLMOutput
+from gpt_condom.fields import ExamplePosition, LLMArrayOutputInfo
+from gpt_condom.prompt_builder import OutputPromptFactory
 
 
 class TestPromptFactory:
