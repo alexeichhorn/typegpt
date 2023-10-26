@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Literal, TypedDict
 
+from pydantic import BaseModel
+
 OpenAIChatModel = Literal[
     "gpt-3.5-turbo",  # 3.5 turbo
     "gpt-3.5-turbo-0301",
@@ -32,46 +34,41 @@ EncodedFunction = dict[str, "EncodedFunction | str | list[str] | list[EncodedFun
 ChatCompletionRole = Literal["function", "system", "user", "assistant"]
 
 
-class FunctionCall(TypedDict):
+class FunctionCall(BaseModel):
     name: str
     arguments: str
 
 
-class Message(TypedDict):
-    content: str | None
-    role: ChatCompletionRole
-    function_call: FunctionCall | None
+class ChatCompletionResult(BaseModel):
+    class CompletionUsage(BaseModel):
+        completion_tokens: int
+        prompt_tokens: int
+        total_tokens: int
 
+    class Choice(BaseModel):
+        class Message(BaseModel):
+            content: str | None = None
+            role: ChatCompletionRole
+            function_call: FunctionCall | None = None
 
-class Choice(TypedDict):
-    finish_reason: Literal["stop", "lenght", "function_call", "content_filter"]
-    index: int
-    message: Message
+        finish_reason: Literal["stop", "length", "function_call", "content_filter"]
+        index: int
+        message: Message
 
-
-class CompletionUsage(TypedDict):
-    completion_tokens: int
-    prompt_tokens: int
-    total_tokens: int
-
-
-class ChatCompletionResult(TypedDict):
     id: str
     model: str
     object: str
     created: int
     choices: list[Choice]
-    usage: CompletionUsage | None
+    usage: CompletionUsage | None = None
 
 
 # - Streaming
 
 
-@dataclass
-class ChatCompletionChunk:
-    @dataclass
-    class Choice:
-        class Delta:
+class ChatCompletionChunk(BaseModel):
+    class Choice(BaseModel):
+        class Delta(BaseModel):
             content: str | None
             function_call: FunctionCall | None
             role: ChatCompletionRole | None

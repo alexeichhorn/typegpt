@@ -158,7 +158,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
             user=user,
         )
 
-        return result["choices"][0]["message"].get("content") or ""
+        return result.choices[0].message.content or ""
 
     @classmethod
     async def generate_output(
