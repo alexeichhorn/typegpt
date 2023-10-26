@@ -1,47 +1,201 @@
-from typing import Generic, TypeVar
+from typing import Any, AsyncGenerator, Awaitable, Generic, Literal, TypeVar, overload
 
 import openai
 import tiktoken
 
 from ..message_collection_builder import EncodedMessage, MessageCollectionFactory
 from ..prompt_definition.prompt_template import PromptTemplate, _Output
-from .views import OpenAIChatModel
+from .views import ChatCompletionChunk, ChatCompletionResult, EncodedFunction, FunctionCallBehavior, OpenAIChatModel
 
 # Prompt = TypeVar("Prompt", bound=PromptTemplate)
 
 
-# TODO: change to better name
 class OpenAIChatCompletion(openai.ChatCompletion):
+    @overload
     @classmethod
     async def acreate(
+        cls,
+        model: OpenAIChatModel,
+        messages: list[dict],
+        stream: Literal[True],
+        frequency_penalty: float | None = None,  # [-2, 2]
+        function_call: FunctionCallBehavior | None = None,
+        functions: list[EncodedFunction] = [],
+        logit_bias: dict[int, float] | None = None,  # [-100, 100]
+        stop: list[str] | None = None,
+        max_tokens: int = 1000,
+        n: int | None = None,
+        presence_penalty: float | None = None,  # [-2, 2]
+        temperature: float | None = None,
+        top_p: float | None = None,
+        user: str | None = None,
+    ) -> tuple[AsyncGenerator[ChatCompletionChunk, None]]:
+        ...
+
+    @overload
+    @classmethod
+    async def acreate(
+        cls,
+        model: OpenAIChatModel,
+        messages: list[dict],
+        stream: Literal[False] = False,
+        frequency_penalty: float | None = None,  # [-2, 2]
+        function_call: FunctionCallBehavior | None = None,
+        functions: list[EncodedFunction] = [],
+        logit_bias: dict[int, float] | None = None,  # [-100, 100]
+        stop: list[str] | None = None,
+        max_tokens: int = 1000,
+        n: int | None = None,
+        presence_penalty: float | None = None,  # [-2, 2]
+        temperature: float | None = None,
+        top_p: float | None = None,
+        user: str | None = None,
+    ) -> ChatCompletionResult:
+        ...
+
+    @classmethod
+    async def acreate(
+        cls,
+        model: OpenAIChatModel,
+        messages: list[dict],
+        stream: bool = False,
+        frequency_penalty: float | None = None,  # [-2, 2]
+        function_call: FunctionCallBehavior | None = None,
+        functions: list[EncodedFunction] = [],
+        logit_bias: dict[int, float] | None = None,  # [-100, 100]
+        stop: list[str] | None = None,
+        max_tokens: int = 1000,
+        n: int | None = None,
+        presence_penalty: float | None = None,  # [-2, 2]
+        temperature: float | None = None,
+        top_p: float | None = None,
+        user: str | None = None,
+    ) -> ChatCompletionResult | tuple[AsyncGenerator[ChatCompletionChunk, None]]:
+        kwargs = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "stream": stream,
+        }
+
+        if frequency_penalty is not None:
+            kwargs["frequency_penalty"] = frequency_penalty
+
+        if functions:
+            kwargs["functions"] = functions
+
+            if function_call:
+                kwargs["function_call"] = function_call
+
+        if logit_bias:
+            kwargs["logit_bias"] = logit_bias
+
+        if stop:
+            kwargs["stop"] = stop
+
+        if n is not None:
+            kwargs["n"] = n
+
+        if presence_penalty is not None:
+            kwargs["presence_penalty"] = presence_penalty
+
+        if temperature is not None:
+            kwargs["temperature"] = temperature
+
+        if top_p is not None:
+            kwargs["top_p"] = top_p
+
+        if user is not None:
+            kwargs["user"] = user
+
+        if stream:
+
+            async def _process_stream(raw_stream: AsyncGenerator[list[dict] | dict, None]) -> AsyncGenerator[ChatCompletionChunk, None]:
+                async for chunk in raw_stream:
+                    if isinstance(chunk, dict):
+                        chunk = [chunk]
+
+                    for c in chunk:
+                        yield ChatCompletionChunk(**c)
+
+            raw_stream: AsyncGenerator[list[dict] | dict, None] = await openai.ChatCompletion.acreate(**kwargs)  # type: ignore
+            return (_process_stream(raw_stream),)  # tuple used to have correct static type
+
+        else:
+            raw_result: dict[str, Any] = await openai.ChatCompletion.acreate(**kwargs)  # type: ignore
+            return ChatCompletionResult(**raw_result)
+
+    @classmethod
+    async def generate_completion(
+        cls,
+        model: OpenAIChatModel,
+        messages: list[dict],
+        frequency_penalty: float | None = None,  # [-2, 2]
+        function_call: FunctionCallBehavior | None = None,
+        functions: list[EncodedFunction] = [],
+        logit_bias: dict[int, float] | None = None,  # [-100, 100]
+        stop: list[str] | None = None,
+        max_tokens: int = 1000,
+        n: int | None = None,
+        presence_penalty: float | None = None,  # [-2, 2]
+        temperature: float | None = None,
+        top_p: float | None = None,
+        user: str | None = None,
+    ) -> str:
+        result = await cls.acreate(
+            model=model,
+            messages=messages,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            stop=stop,
+            max_tokens=max_tokens,
+            n=n,
+            presence_penalty=presence_penalty,
+            temperature=temperature,
+            top_p=top_p,
+            user=user,
+        )
+
+        return result["choices"][0]["message"].get("content") or ""
+
+    @classmethod
+    async def generate_output(
         cls,
         model: OpenAIChatModel,
         prompt: PromptTemplate[_Output],
         max_output_tokens: int,
         max_input_tokens: int | None = None,
-        **kwargs,
+        frequency_penalty: float | None = None,  # [-2, 2]
+        n: int | None = None,
+        presence_penalty: float | None = None,  # [-2, 2]
+        temperature: float | None = None,
+        top_p: float | None = None,
     ) -> _Output:
         """
         Calls OpenAI Chat API, generates assistant response, and fits it into the output class
         """
-
-        kwargs["model"] = model
-        kwargs["stream"] = False
 
         max_prompt_length = cls.max_tokens_of_model(model) - max_output_tokens
 
         if max_input_tokens:
             max_prompt_length = min(max_prompt_length, max_input_tokens)
 
-        kwargs["messages"] = prompt.generate_messages(
+        messages = prompt.generate_messages(
             token_limit=max_prompt_length, token_counter=lambda messages: cls.num_tokens_from_messages(messages, model=model)
         )
-        kwargs["max_tokens"] = max_output_tokens
 
-        result = await openai.ChatCompletion.acreate(**kwargs)
-
-        message = result["choices"][0]["message"]  # type: ignore
-        completion = message.get("content", "")
+        completion = await cls.generate_completion(
+            model=model,
+            messages=messages,
+            max_tokens=max_output_tokens,
+            frequency_penalty=frequency_penalty,
+            n=n,
+            presence_penalty=presence_penalty,
+            temperature=temperature,
+            top_p=top_p,
+        )
 
         return prompt.Output.parse_response(completion)
 

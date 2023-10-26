@@ -41,7 +41,19 @@ class TestOpenAIChatCompletion:
     @pytest.fixture
     def mock_openai_completion(self, mocker):
         async def async_mock(*args, **kwargs):
-            return {"choices": [{"message": {"content": "TITLE: This is a test completion\nCOUNT: 09"}}]}
+            return {
+                "id": "test",
+                "model": "gpt-3.5-turbo",
+                "object": "x",
+                "created": 123,
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "index": 1,
+                        "message": {"role": "assistant", "content": "TITLE: This is a test completion\nCOUNT: 09"},
+                    }
+                ],
+            }
 
         mocker.patch("gpt_condom.openai.chat_completion.openai.ChatCompletion.acreate", new=async_mock)
 
@@ -58,7 +70,7 @@ class TestOpenAIChatCompletion:
                 title: str
                 count: int
 
-        result = await OpenAIChatCompletion.acreate(
+        result = await OpenAIChatCompletion.generate_output(
             model="gpt-3.5-turbo",
             prompt=FullExamplePrompt(),
             max_output_tokens=100,
