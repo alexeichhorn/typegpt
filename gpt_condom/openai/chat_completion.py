@@ -60,7 +60,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         user: str | None = None,
-        config: OpenAIConfig | None = None,
+        config: OpenAIConfig | AzureConfig | None = None,
     ) -> ChatCompletionResult:
         ...
 
