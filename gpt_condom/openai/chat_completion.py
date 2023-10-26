@@ -5,7 +5,16 @@ import tiktoken
 
 from ..message_collection_builder import EncodedMessage, MessageCollectionFactory
 from ..prompt_definition.prompt_template import PromptTemplate, _Output
-from .views import ChatCompletionChunk, ChatCompletionResult, EncodedFunction, FunctionCallBehavior, OpenAIChatModel
+from .views import (
+    AzureChatModel,
+    AzureConfig,
+    ChatCompletionChunk,
+    ChatCompletionResult,
+    EncodedFunction,
+    FunctionCallBehavior,
+    OpenAIChatModel,
+    OpenAIConfig,
+)
 
 # Prompt = TypeVar("Prompt", bound=PromptTemplate)
 
@@ -15,7 +24,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
     @classmethod
     async def acreate(
         cls,
-        model: OpenAIChatModel,
+        model: OpenAIChatModel | AzureChatModel,
         messages: list[dict],
         stream: Literal[True],
         frequency_penalty: float | None = None,  # [-2, 2]
@@ -29,6 +38,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         user: str | None = None,
+        config: OpenAIConfig | AzureConfig | None = None,
     ) -> tuple[AsyncGenerator[ChatCompletionChunk, None]]:
         ...
 
@@ -36,7 +46,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
     @classmethod
     async def acreate(
         cls,
-        model: OpenAIChatModel,
+        model: OpenAIChatModel | AzureChatModel,
         messages: list[dict],
         stream: Literal[False] = False,
         frequency_penalty: float | None = None,  # [-2, 2]
@@ -50,13 +60,14 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         user: str | None = None,
+        config: OpenAIConfig | None = None,
     ) -> ChatCompletionResult:
         ...
 
     @classmethod
     async def acreate(
         cls,
-        model: OpenAIChatModel,
+        model: OpenAIChatModel | AzureChatModel,
         messages: list[dict],
         stream: bool = False,
         frequency_penalty: float | None = None,  # [-2, 2]
@@ -70,13 +81,18 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         user: str | None = None,
+        config: OpenAIConfig | AzureConfig | None = None,
     ) -> ChatCompletionResult | tuple[AsyncGenerator[ChatCompletionChunk, None]]:
         kwargs = {
-            "model": model,
             "messages": messages,
             "max_tokens": max_tokens,
             "stream": stream,
         }
+
+        if isinstance(model, AzureChatModel):
+            kwargs["deployment_id"] = model.deployment_id
+        else:
+            kwargs["model"] = model
 
         if frequency_penalty is not None:
             kwargs["frequency_penalty"] = frequency_penalty
@@ -107,6 +123,9 @@ class OpenAIChatCompletion(openai.ChatCompletion):
 
         if user is not None:
             kwargs["user"] = user
+
+        if config:
+            kwargs = {**kwargs, **config.__dict__}
 
         if stream:
 

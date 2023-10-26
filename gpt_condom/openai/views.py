@@ -18,6 +18,24 @@ OpenAIChatModel = Literal[
 ]
 
 
+@dataclass
+class AzureChatModel:
+    deployment_id: str
+
+
+@dataclass
+class OpenAIConfig:
+    api_key: str
+
+
+@dataclass
+class AzureConfig:
+    api_key: str
+    api_base: str
+    api_version: str
+    api_type: str = "azure"
+
+
 class FunctionCallForceBehavior(TypedDict):
     name: str  # function name
 
