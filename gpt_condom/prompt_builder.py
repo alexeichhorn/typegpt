@@ -16,13 +16,13 @@ class OutputPromptFactory:
         if is_unlimited:
             return LimitedExampleListFormatter(max_count, "\n").format(examples) + "\n...\n"
         else:
-            return LimitedExampleListFormatter(3, separator="\n").format(examples)
+            return LimitedExampleListFormatter(3, separator="\n").format(examples) + "\n"
 
     def generate(self) -> str:
         if self.threaten:
-            prompt = "Return the answer in the following format, otherwise people might die and you are the only one to blame:"
+            prompt = "Always return the answer in the following format, otherwise people might die and you are the only one to blame:"
         else:
-            prompt = "Return the answer in the following format:"
+            prompt = "Always return the answer in the following format:"
 
         prompt += '\n"""\n'
 
