@@ -27,7 +27,7 @@ class MessageCollectionFactory(Generic[Prompt]):
 
         result: list[EncodedMessage] = [{"role": "system", "content": system_prompt}]
 
-        result.append({"role": "user", "content": self.prompt.user_prompt()})
+        result.append({"role": "user", "content": prompt.user_prompt()})
 
         return result
 

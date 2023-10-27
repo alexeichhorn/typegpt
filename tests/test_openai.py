@@ -10,6 +10,7 @@ from unittest.mock import Mock
 import pytest
 
 from gpt_condom import BaseLLMResponse, PromptTemplate
+from gpt_condom.exceptions import LLMTokenLimitExceeded
 from gpt_condom.openai import OpenAIChatCompletion
 from gpt_condom.openai.chat_completion import OpenAIChatModel
 
@@ -79,3 +80,73 @@ class TestOpenAIChatCompletion:
         assert isinstance(result, FullExamplePrompt.Output)
         assert result.title == "This is a test completion"
         assert result.count == 9
+
+    @pytest.mark.asyncio
+    async def test_mock_reduce_prompt(self, mock_openai_completion):
+        class NonAutomaticReducingPrompt(PromptTemplate):
+            def __init__(self, number: int):
+                self.lines = [f"This is line {i}" for i in range(number)]
+
+            def system_prompt(self) -> str:
+                return "This is a random system prompt"
+
+            def user_prompt(self) -> str:
+                return "My lines:\n\n" + "\n".join(self.lines)
+
+            class Output(BaseLLMResponse):
+                lines: list[str]
+
+        non_reducing_prompt_100 = NonAutomaticReducingPrompt(100)
+
+        result = await OpenAIChatCompletion.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=non_reducing_prompt_100,
+            max_output_tokens=100,
+        )
+
+        non_reducing_prompt_1000 = NonAutomaticReducingPrompt(1000)
+
+        with pytest.raises(LLMTokenLimitExceeded):
+            result = await OpenAIChatCompletion.generate_output(
+                model="gpt-3.5-turbo",
+                prompt=non_reducing_prompt_1000,
+                max_output_tokens=100,
+            )
+
+        class ReducingTestPrompt(PromptTemplate):
+            def __init__(self, number: int):
+                self.lines = [f"This is line {i}" for i in range(number)]
+
+            def system_prompt(self) -> str:
+                return "This is a random system prompt"
+
+            def user_prompt(self) -> str:
+                return "My lines:\n\n" + "\n".join(self.lines)
+
+            class Output(BaseLLMResponse):
+                lines: list[str]
+
+            def reduce_if_possible(self) -> bool:
+                if len(self.lines) > 10:
+                    # remove last 10 lines
+                    self.lines = self.lines[:-10]
+                    return True
+                return False
+
+        reducing_prompt_100 = ReducingTestPrompt(100)
+
+        result = await OpenAIChatCompletion.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=reducing_prompt_100,
+            max_output_tokens=100,
+        )
+
+        assert len(reducing_prompt_100.lines) == 100
+
+        reducing_prompt_1000 = ReducingTestPrompt(1000)
+
+        result = await OpenAIChatCompletion.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=reducing_prompt_1000,
+            max_output_tokens=100,
+        )
