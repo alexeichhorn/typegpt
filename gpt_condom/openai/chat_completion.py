@@ -5,6 +5,7 @@ import tiktoken
 
 from ..message_collection_builder import EncodedMessage, MessageCollectionFactory
 from ..prompt_definition.prompt_template import PromptTemplate, _Output
+from .exceptions import AzureContentFilterException
 from .views import (
     AzureChatModel,
     AzureConfig,
@@ -15,6 +16,7 @@ from .views import (
     OpenAIChatModel,
     OpenAIConfig,
 )
+from openai.error import InvalidRequestError
 
 # Prompt = TypeVar("Prompt", bound=PromptTemplate)
 
@@ -93,8 +95,10 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         }
 
         if isinstance(model, AzureChatModel):
+            is_azure = True
             kwargs["deployment_id"] = model.deployment_id
         else:
+            is_azure = False
             kwargs["model"] = model
 
         if frequency_penalty is not None:
@@ -147,8 +151,20 @@ class OpenAIChatCompletion(openai.ChatCompletion):
             return (_process_stream(raw_stream),)  # tuple used to have correct static type
 
         else:
-            raw_result: dict[str, Any] = await openai.ChatCompletion.acreate(**kwargs)  # type: ignore
-            return ChatCompletionResult(**raw_result)
+            try:
+                raw_result: dict[str, Any] = await openai.ChatCompletion.acreate(**kwargs)  # type: ignore
+                result = ChatCompletionResult(**raw_result)
+
+                if is_azure and result.choices[0].finish_reason == "content_filter":
+                    raise AzureContentFilterException(reason="completion")
+
+                return result
+
+            except InvalidRequestError as e:
+                if is_azure and e.code == "content_filter":
+                    raise AzureContentFilterException(reason="prompt")
+                else:
+                    raise e
 
     @classmethod
     async def generate_completion(
