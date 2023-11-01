@@ -50,6 +50,7 @@ MOUSE 2: <Put the second mouse here>
     class CustomExplainedTestOutput(BaseLLMResponse):
         abcd: str = LLMOutput("Just put a random string here (perferably 'abcd')", multiline=False)
         longer_sentences: str = LLMOutput("Put longer sentences here please", multiline=True)
+        items: list[str] = LLMArrayOutput((1, 2), instruction=lambda i: f"Put item {i} here")
 
     def test_custom_explained_output_fields(self):
         fields = list(self.CustomExplainedTestOutput.__fields__.values())
@@ -59,6 +60,8 @@ Always return the answer in the following format:
 \"""
 ABCD: <Just put a random string here (perferably 'abcd')>
 LONGER SENTENCES: <Put longer sentences here please>
+ITEM 1: <Put item 1 here>
+ITEM 2: <Put item 2 here>
 \"""
 """.strip()
 
