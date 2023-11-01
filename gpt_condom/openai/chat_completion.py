@@ -5,6 +5,7 @@ import tiktoken
 from openai.error import InvalidRequestError
 
 from ..base import BaseLLMResponse
+from ..exceptions import LLMParseException
 from ..message_collection_builder import EncodedMessage, MessageCollectionFactory
 from ..prompt_definition.prompt_template import PromptTemplate
 from ..utils.internal_types import _UseDefault, _UseDefaultType
@@ -225,6 +226,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         request_timeout: float | None = None,
+        retry_on_parse_error: int = 0,
         config: OpenAIConfig | AzureConfig | None = None,
     ) -> _Output:
         ...
@@ -244,6 +246,7 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         request_timeout: float | None = None,
+        retry_on_parse_error: int = 0,
         config: OpenAIConfig | AzureConfig | None = None,
     ) -> BaseLLMResponse:
         ...
@@ -262,10 +265,20 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         temperature: float | None = None,
         top_p: float | None = None,
         request_timeout: float | None = None,
+        retry_on_parse_error: int = 0,
         config: OpenAIConfig | AzureConfig | None = None,
     ) -> _Output | BaseLLMResponse:
         """
         Calls OpenAI Chat API, generates assistant response, and fits it into the output class
+
+        :param model: model to use as `OpenAIChatModel` or `AzureChatModel`
+        :param prompt: prompt, which is a subclass of `PromptTemplate`
+        :param max_output_tokens: maximum number of tokens to generate
+        :param output_type: output class used to parse the response, subclass of `BaseLLMResponse`. If not specified, the output defined in the prompt is used
+        :param max_input_tokens: maximum number of tokens to use from the prompt. If not specified, the maximum number of tokens is calculated automatically
+        :param request_timeout: timeout for the request in seconds
+        :param retry_on_parse_error: number of retries if the response cannot be parsed (i.e. any `LLMParseException`). If set to 0, it has no effect.
+        :param config: additional OpenAI/Azure config if needed (e.g. no global api key)
         """
 
         if isinstance(model, AzureChatModel):
@@ -295,10 +308,30 @@ class OpenAIChatCompletion(openai.ChatCompletion):
             config=config,
         )
 
-        if isinstance(output_type, _UseDefaultType):
-            return prompt.Output.parse_response(completion)
-        else:
-            return output_type.parse_response(completion)
+        try:
+            if isinstance(output_type, _UseDefaultType):
+                return prompt.Output.parse_response(completion)
+            else:
+                return output_type.parse_response(completion)
+        except LLMParseException as e:
+            if retry_on_parse_error > 0:
+                return await cls.generate_output(
+                    model=model,
+                    prompt=prompt,
+                    max_output_tokens=max_output_tokens,
+                    output_type=output_type,
+                    max_input_tokens=max_input_tokens,
+                    frequency_penalty=frequency_penalty,
+                    n=n,
+                    presence_penalty=presence_penalty,
+                    temperature=temperature,
+                    top_p=top_p,
+                    request_timeout=request_timeout,
+                    retry_on_parse_error=retry_on_parse_error - 1,
+                    config=config,
+                )
+            else:
+                raise e
 
     # endregion
     # region - sync completion

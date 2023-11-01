@@ -9,7 +9,7 @@ from typing import Any, List, Literal, Optional
 import pytest
 
 from gpt_condom import BaseLLMResponse, LLMArrayOutput, LLMOutput
-from gpt_condom.exceptions import LLMOutputFieldMissing, LLMOutputFieldWrongType
+from gpt_condom.exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
 from gpt_condom.fields import ExamplePosition, LLMArrayOutputInfo
 
 
@@ -62,7 +62,7 @@ class TestResponseObject:
         with pytest.raises(LLMOutputFieldWrongType):
             self.SimpleTestOutput(title=1, description="Some description", tags=["first tag"])  # type: ignore
 
-        with pytest.raises(TypeError):
+        with pytest.raises(LLMOutputFieldWrongType):
             self.SimpleTestOutput(title="Some title", description="Some description", tags="first tag")  # type: ignore
 
         with pytest.raises(LLMOutputFieldWrongType):
@@ -117,11 +117,11 @@ class TestResponseObject:
             self.ExtendedTestOutput(title="Some title", description=None)  # type: ignore
 
         # not enough tags
-        with pytest.raises(ValueError):
+        with pytest.raises(LLMOutputFieldInvalidLength):
             self.ExtendedTestOutput(tags=[])
 
         # too many tags
-        with pytest.raises(ValueError):
+        with pytest.raises(LLMOutputFieldInvalidLength):
             self.ExtendedTestOutput(tags=["a", "b", "c", "d"])
 
     def test_extended_incorrect_type_initialization(self):

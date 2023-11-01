@@ -6,9 +6,17 @@ class LLMTokenLimitExceeded(LLMException):
     ...
 
 
-class LLMOutputFieldMissing(LLMException):
+class LLMParseException(LLMException):
     ...
 
 
-class LLMOutputFieldWrongType(LLMException):
+class LLMOutputFieldMissing(LLMParseException):
+    ...
+
+
+class LLMOutputFieldWrongType(LLMParseException):
+    ...
+
+
+class LLMOutputFieldInvalidLength(LLMParseException):
     ...

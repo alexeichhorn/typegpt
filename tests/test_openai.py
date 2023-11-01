@@ -9,10 +9,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from gpt_condom import BaseLLMResponse, PromptTemplate
+from gpt_condom import BaseLLMResponse, LLMArrayOutput, PromptTemplate
 from gpt_condom.exceptions import LLMTokenLimitExceeded
 from gpt_condom.openai import OpenAIChatCompletion
-from gpt_condom.openai.chat_completion import OpenAIChatModel
+from gpt_condom.openai.chat_completion import OpenAIChatModel, openai
 
 
 class TestOpenAIChatCompletion:
@@ -107,6 +107,66 @@ class TestOpenAIChatCompletion:
         assert isinstance(result_alt, AlternativeOutput)
         assert result_alt.count == 9
         assert not hasattr(result_alt, "title")
+
+    @pytest.fixture
+    def mock_openai_retry_completion(self, mocker):
+        call_count = 0
+
+        async def async_mock(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+
+            if call_count == 6:
+                content_res = "TITLE: Some title n\nCOUNT: 42\nITEM 1: abc"
+            elif call_count == 5:
+                content_res = "TITLE: Some title n\nCOUNT: 42"
+            elif call_count == 4:
+                content_res = "Random stuff"  # no content
+            elif call_count == 3:
+                content_res = "TITLE: Some title\nCOUNT: 99999\nITEM 1: abc\nITEM 2: def\nITEM 3: ghi"  # too many items
+            elif call_count == 2:
+                content_res = "TITLE: Some title\nCOUNT: random string\nITEM 1: abc"  # wrong type
+            else:
+                content_res = "TITLE: Only title\nITEM 1: abc"
+
+            return {
+                "id": "test",
+                "model": "gpt-3.5-turbo",
+                "object": "x",
+                "created": 123,
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "index": 1,
+                        "message": {"role": "assistant", "content": content_res},
+                    }
+                ],
+            }
+
+        mocker.patch("gpt_condom.openai.chat_completion.openai.ChatCompletion.acreate", new=async_mock)
+
+    @pytest.mark.asyncio
+    async def test_mock_end_to_end_parse_retry(self, mock_openai_retry_completion):
+        class FullExamplePrompt(PromptTemplate):
+            def system_prompt(self) -> str:
+                return "This is a random system prompt"
+
+            def user_prompt(self) -> str:
+                return "This is a random user prompt"
+
+            class Output(BaseLLMResponse):
+                title: str
+                items: list[str] = LLMArrayOutput((1, 2), instruction=lambda _: "Put the items here")
+                count: int
+
+        result = await OpenAIChatCompletion.generate_output(
+            model="gpt-3.5-turbo", prompt=FullExamplePrompt(), max_output_tokens=100, retry_on_parse_error=5
+        )
+
+        assert isinstance(result, FullExamplePrompt.Output)
+        assert result.title == "Some title n"
+        assert result.items == ["abc"]
+        assert result.count == 42
 
     @pytest.mark.asyncio
     async def test_mock_reduce_prompt(self, mock_openai_completion):

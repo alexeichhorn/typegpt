@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
-from .exceptions import LLMOutputFieldMissing, LLMOutputFieldWrongType
+from .exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
 from .fields import ClassPlaceholder, LLMArrayOutputInfo, LLMFieldInfo, LLMOutputInfo
 from .meta import LLMMeta
 from .parser import Parser
@@ -82,11 +82,15 @@ class BaseLLMResponse(metaclass=LLMMeta):
             item_type = array_item_type(field_info.type_)
 
             if not isinstance(__value, list):
-                raise TypeError(f'"{self.__class__.__name__}" field "{__name}" must be a list')
+                raise LLMOutputFieldWrongType(f'"{self.__class__.__name__}" field "{__name}" must be a list')
             if field_info.info.min_count is not None and len(__value) < field_info.info.min_count:
-                raise ValueError(f'"{self.__class__.__name__}" field "{__name}" must have at least {field_info.info.min_count} items')
+                raise LLMOutputFieldInvalidLength(
+                    f'"{self.__class__.__name__}" field "{__name}" must have at least {field_info.info.min_count} items'
+                )
             if field_info.info.max_count is not None and len(__value) > field_info.info.max_count:
-                raise ValueError(f'"{self.__class__.__name__}" field "{__name}" must have at most {field_info.info.max_count} items')
+                raise LLMOutputFieldInvalidLength(
+                    f'"{self.__class__.__name__}" field "{__name}" must have at most {field_info.info.max_count} items'
+                )
 
             __value = [self._prepare_field_value(v, item_type) for v in __value]
             if not all(isinstance(v, item_type) for v in __value):

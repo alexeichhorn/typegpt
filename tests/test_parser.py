@@ -9,7 +9,7 @@ import logging
 import pytest
 
 from gpt_condom import BaseLLMResponse, LLMArrayOutput, LLMOutput
-from gpt_condom.exceptions import LLMOutputFieldMissing, LLMOutputFieldWrongType
+from gpt_condom.exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
 from gpt_condom.fields import ExamplePosition, LLMArrayOutputInfo
 
 
@@ -171,7 +171,7 @@ L4
 APPLE 1: L1
 """
 
-        with pytest.raises(ValueError):
+        with pytest.raises(LLMOutputFieldInvalidLength):
             self.MultilineArrayTestOutput.parse_response(completion_output_2)
 
         completion_output_3 = """
@@ -190,7 +190,7 @@ APPLE 3: L3
 APPLE 4: L4
 """
 
-        with pytest.raises(ValueError):
+        with pytest.raises(LLMOutputFieldInvalidLength):
             self.MultilineArrayTestOutput.parse_response(completion_output_4)
 
     # endregion
