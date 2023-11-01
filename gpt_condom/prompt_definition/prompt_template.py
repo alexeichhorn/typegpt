@@ -6,10 +6,10 @@ from ..base import BaseLLMResponse
 from ..fields import LLMArrayOutput
 from ..message_collection_builder import EncodedMessage, MessageCollectionFactory
 
-_Output = TypeVar("_Output", bound=BaseLLMResponse)
+# _Output = TypeVar("_Output", bound=BaseLLMResponse)
 
 
-class PromptTemplate(Protocol[_Output]):  # , Generic[_Output]):
+class PromptTemplate(Protocol):  # , Generic[_Output]):
     def system_prompt(self) -> str:
         ...
 
@@ -23,7 +23,7 @@ class PromptTemplate(Protocol[_Output]):  # , Generic[_Output]):
         """
         return False
 
-    Output: type[_Output]  # type[_Output]
+    Output: type[BaseLLMResponse]  # type[_Output]
 
     def generate_messages(self, token_limit: int, token_counter: Callable[[list[EncodedMessage]], int]):
         """

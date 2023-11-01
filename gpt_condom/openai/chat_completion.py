@@ -2,9 +2,12 @@ from typing import Any, AsyncGenerator, Awaitable, Generic, Literal, TypeVar, ov
 
 import openai
 import tiktoken
+from openai.error import InvalidRequestError
 
+from ..base import BaseLLMResponse
 from ..message_collection_builder import EncodedMessage, MessageCollectionFactory
-from ..prompt_definition.prompt_template import PromptTemplate, _Output
+from ..prompt_definition.prompt_template import PromptTemplate
+from ..utils.internal_types import _UseDefault, _UseDefaultType
 from .exceptions import AzureContentFilterException
 from .views import (
     AzureChatModel,
@@ -16,12 +19,14 @@ from .views import (
     OpenAIChatModel,
     OpenAIConfig,
 )
-from openai.error import InvalidRequestError
 
 # Prompt = TypeVar("Prompt", bound=PromptTemplate)
+_Output = TypeVar("_Output", bound=BaseLLMResponse)
 
 
 class OpenAIChatCompletion(openai.ChatCompletion):
+    # region - async completion
+
     @overload
     @classmethod
     async def acreate(
@@ -205,12 +210,14 @@ class OpenAIChatCompletion(openai.ChatCompletion):
 
         return result.choices[0].message.content or ""
 
+    @overload
     @classmethod
     async def generate_output(
         cls,
         model: OpenAIChatModel | AzureChatModel,
-        prompt: PromptTemplate[_Output],
+        prompt: PromptTemplate,
         max_output_tokens: int,
+        output_type: type[_Output],
         max_input_tokens: int | None = None,
         frequency_penalty: float | None = None,  # [-2, 2]
         n: int | None = None,
@@ -220,6 +227,43 @@ class OpenAIChatCompletion(openai.ChatCompletion):
         request_timeout: float | None = None,
         config: OpenAIConfig | AzureConfig | None = None,
     ) -> _Output:
+        ...
+
+    @overload
+    @classmethod
+    async def generate_output(
+        cls,
+        model: OpenAIChatModel | AzureChatModel,
+        prompt: PromptTemplate,
+        max_output_tokens: int,
+        output_type: _UseDefaultType = _UseDefault,
+        max_input_tokens: int | None = None,
+        frequency_penalty: float | None = None,  # [-2, 2]
+        n: int | None = None,
+        presence_penalty: float | None = None,  # [-2, 2]
+        temperature: float | None = None,
+        top_p: float | None = None,
+        request_timeout: float | None = None,
+        config: OpenAIConfig | AzureConfig | None = None,
+    ) -> BaseLLMResponse:
+        ...
+
+    @classmethod
+    async def generate_output(
+        cls,
+        model: OpenAIChatModel | AzureChatModel,
+        prompt: PromptTemplate,
+        max_output_tokens: int,
+        output_type: type[_Output] | _UseDefaultType = _UseDefault,
+        max_input_tokens: int | None = None,
+        frequency_penalty: float | None = None,  # [-2, 2]
+        n: int | None = None,
+        presence_penalty: float | None = None,  # [-2, 2]
+        temperature: float | None = None,
+        top_p: float | None = None,
+        request_timeout: float | None = None,
+        config: OpenAIConfig | AzureConfig | None = None,
+    ) -> _Output | BaseLLMResponse:
         """
         Calls OpenAI Chat API, generates assistant response, and fits it into the output class
         """
@@ -251,9 +295,18 @@ class OpenAIChatCompletion(openai.ChatCompletion):
             config=config,
         )
 
-        return prompt.Output.parse_response(completion)
+        if isinstance(output_type, _UseDefaultType):
+            return prompt.Output.parse_response(completion)
+        else:
+            return output_type.parse_response(completion)
+
+    # endregion
+    # region - sync completion
 
     # TODO: implement sync variant `create`
+
+    # endregion
+    # region - token counting
 
     @staticmethod
     def max_tokens_of_model(model: OpenAIChatModel) -> int:
@@ -306,3 +359,5 @@ class OpenAIChatCompletion(openai.ChatCompletion):
                     num_tokens += tokens_per_name
         num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
         return num_tokens
+
+    # endregion

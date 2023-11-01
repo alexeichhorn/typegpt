@@ -74,12 +74,39 @@ class TestOpenAIChatCompletion:
         result = await OpenAIChatCompletion.generate_output(
             model="gpt-3.5-turbo",
             prompt=FullExamplePrompt(),
+            output_type=FullExamplePrompt.Output,
             max_output_tokens=100,
         )
 
         assert isinstance(result, FullExamplePrompt.Output)
         assert result.title == "This is a test completion"
         assert result.count == 9
+
+        result_base = await OpenAIChatCompletion.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result, FullExamplePrompt.Output)
+        assert result.title == "This is a test completion"
+        assert result.count == 9
+
+        # -
+
+        class AlternativeOutput(BaseLLMResponse):
+            count: int
+
+        result_alt = await OpenAIChatCompletion.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            output_type=AlternativeOutput,
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result_alt, AlternativeOutput)
+        assert result_alt.count == 9
+        assert not hasattr(result_alt, "title")
 
     @pytest.mark.asyncio
     async def test_mock_reduce_prompt(self, mock_openai_completion):
