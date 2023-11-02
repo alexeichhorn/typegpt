@@ -8,9 +8,10 @@ import logging
 
 import pytest
 
-from gpt_condom import BaseLLMResponse, LLMArrayOutput, LLMOutput
+from gpt_condom import BaseLLMResponse, LLMArrayOutput, LLMOutput, PromptTemplate
 from gpt_condom.exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
 from gpt_condom.fields import ExamplePosition, LLMArrayOutputInfo
+from gpt_condom.utils.internal_types import _NoDefault
 
 
 class TestFields:
@@ -194,5 +195,65 @@ APPLE 4: L4
 
         with pytest.raises(LLMOutputFieldInvalidLength):
             self.MultilineArrayTestOutput.parse_response(completion_output_4)
+
+    # endregion
+    # region - 6
+
+    def test_dyamic_parse_output(self):
+        class DynamicTestPrompt(PromptTemplate):
+            def __init__(self, num_items: int, actor_needed: bool):
+                self.num_items = num_items
+                self.actor_needed = actor_needed
+
+            @property
+            def Output(self):
+                class Output(BaseLLMResponse):
+                    items: list[str] = LLMArrayOutput(self.num_items, lambda _: "test")
+                    actor: str = LLMOutput("Some actor", default=_NoDefault if self.actor_needed else "some default")
+
+                return Output
+
+            def system_prompt(self) -> str:
+                return "..."
+
+            def user_prompt(self) -> str:
+                return "..."
+
+        completion_output_1 = """
+ITEM 1: L1
+"""
+
+        completion_output_2 = """
+ITEM 1: L1
+ITEM 2: L2
+"""
+
+        completion_output_3 = """
+ITEM 1: L1
+ITEM 2: L2
+ACTOR: Some actor
+"""
+
+        parsed_output_1 = DynamicTestPrompt(1, False).Output.parse_response(completion_output_1)
+        assert parsed_output_1.items == ["L1"]
+        assert parsed_output_1.actor == "some default"
+
+        parsed_output_2 = DynamicTestPrompt(2, False).Output.parse_response(completion_output_2)
+        assert parsed_output_2.items == ["L1", "L2"]
+        assert parsed_output_2.actor == "some default"
+
+        parsed_output_3 = DynamicTestPrompt(2, True).Output.parse_response(completion_output_3)
+        assert parsed_output_3.items == ["L1", "L2"]
+        assert parsed_output_3.actor == "Some actor"
+
+        parsed_output_4 = DynamicTestPrompt(2, False).Output.parse_response(completion_output_3)
+        assert parsed_output_4.items == ["L1", "L2"]
+        assert parsed_output_4.actor == "Some actor"
+
+        with pytest.raises(LLMOutputFieldMissing):
+            DynamicTestPrompt(2, True).Output.parse_response(completion_output_2)
+
+        with pytest.raises(LLMOutputFieldInvalidLength):
+            DynamicTestPrompt(2, False).Output.parse_response(completion_output_1)
 
     # endregion
