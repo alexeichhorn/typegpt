@@ -73,7 +73,14 @@ class LLMMeta(ABCMeta):
                 continue
             if var_name.startswith("_BaseLLMResponse_"):
                 continue
-            if var_name in ("_Self", "parse_response", "_prepare_and_validate_field", "_prepare_and_validate_dict", "_prepare_field_value"):
+            if var_name in (
+                "_Self",
+                "parse_response",
+                "_prepare_and_validate_field",
+                "_prepare_and_validate_dict",
+                "_prepare_field_value",
+                "_set_raw_completion",
+            ):
                 continue
             if not var_name in fields:
                 raise ValueError(f"Field {var_name} has no type annotation")

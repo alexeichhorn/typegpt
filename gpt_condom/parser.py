@@ -48,6 +48,7 @@ class Parser(Generic[_Output]):
         field_values: dict[str, str | list[str]] = {}
 
         # preprocess full response
+        raw_response = response
         response = symmetric_strip(response.strip(), ["'", '"', "`"])
 
         for field in self.fields:
@@ -65,7 +66,9 @@ class Parser(Generic[_Output]):
                 matches = re.finditer(pattern, response)
                 field_values[field.key] = [m.group("content").strip() for m in matches]
 
-        return self.output_type(**field_values)
+        output = self.output_type(**field_values)
+        output._set_raw_completion(raw_response)
+        return output
 
 
 if TYPE_CHECKING:

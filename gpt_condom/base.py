@@ -15,6 +15,7 @@ class BaseLLMResponse(metaclass=LLMMeta):
         # populated by the metaclass (ClassPlaceholder used to prevent showing up as type suggestion)
         __fields__: ClassVar[dict[str, LLMFieldInfo]] = ClassPlaceholder(init=False, value={})
         __signature__: ClassVar["Signature"] = ClassPlaceholder(init=False)
+        __raw_completion__: str = ClassPlaceholder(init=False, value="")
 
     def __init__(self, **data: Any):
         # print(data)
@@ -26,6 +27,10 @@ class BaseLLMResponse(metaclass=LLMMeta):
 
         def __setattr__(self, __name: str, __value: Any) -> None:
             # print(f"Setting {__name} to {__value}")
+
+            if __name.startswith("__"):
+                super().__setattr__(__name, __value)
+                return
 
             __value = self._prepare_and_validate_field(__name, __value)  # throws error if invalid
 
@@ -121,6 +126,9 @@ class BaseLLMResponse(metaclass=LLMMeta):
                     __values[field.key] = []
 
         return __values
+
+    def _set_raw_completion(self, completion: str):
+        self.__raw_completion__ = completion
 
     # - Parsing
 

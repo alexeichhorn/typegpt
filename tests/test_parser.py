@@ -46,6 +46,7 @@ CONNECTED FLOAT 3: 3.14
         assert parsed_output.connected_floats == [1.0, 2.0, 3.14]
         assert parsed_output.mice == []
         assert parsed_output.sample_with_default == "some default value"
+        assert parsed_output.__raw_completion__ == completion_output
 
     def test_parse_simple_output_2(self):
         completion_output = """
@@ -66,6 +67,7 @@ SAMPLE WITH DEFAULT: some other value
         assert parsed_output.connected_floats == []
         assert parsed_output.mice == ["Mickey", "Minnie"]
         assert parsed_output.sample_with_default == "some other value"
+        assert parsed_output.__raw_completion__ == completion_output
 
     # endregion
     # region - 2
