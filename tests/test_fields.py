@@ -41,3 +41,19 @@ class TestFields:
 
         # also make sure it is exhaustive
         assert len(self.SimpleTestOutput.__fields__) == len(expected_fields)
+
+    # -
+
+    class ExtendedTestOutput(BaseLLMResponse):
+        title: str | None = LLMOutput("Put the title here")
+        some_text: str = LLMOutput("...", default="empty")
+
+    def test_extended_output_fields(self):
+        expected_fields = {
+            "title": LLMOutput("Put the title here", default=None),
+            "some_text": LLMOutput("...", default="empty"),
+        }
+
+        for key, value in self.ExtendedTestOutput.__fields__.items():
+            assert key in expected_fields
+            assert value.info == expected_fields[key], f"Field '{key}' does not match expected value"

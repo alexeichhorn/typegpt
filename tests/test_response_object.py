@@ -170,11 +170,6 @@ class TestResponseObject:
             class F(BaseLLMResponse):
                 z: str = LLMOutput("test", default=None)
 
-        with pytest.raises(ValueError):
-
-            class G(BaseLLMResponse):
-                z: str | None = LLMOutput("test")  # TODO: automatically set default to None
-
         # - matching wrong field description (array <-> non-array)
 
         with pytest.raises(TypeError):

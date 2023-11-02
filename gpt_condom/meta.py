@@ -64,7 +64,7 @@ class LLMMeta(ABCMeta):
                     )
                 fields[field_name] = LLMFieldInfo(name=displayed_name, key=field_name, type_=field_type, info=field)
 
-            LLMMeta._verify_field_info(fields[field_name])
+            fields[field_name] = LLMMeta._verify_and_fix_field_info(fields[field_name])
 
             cls.__fields__ = fields
 
@@ -139,7 +139,7 @@ class LLMMeta(ABCMeta):
     #     return __value
 
     @staticmethod
-    def _verify_field_info(field: LLMFieldInfo):
+    def _verify_and_fix_field_info(field: LLMFieldInfo) -> LLMFieldInfo:
         """@throws ValueError, TypeError"""
 
         # TODO: check types and more
@@ -155,6 +155,10 @@ class LLMMeta(ABCMeta):
                     raise TypeError(f'"{field.key}" default value ({field.info.default}) must be of specified type {field.type_}')
 
             elif is_optional(field.type_):  # optional, but no default
-                raise ValueError(f'"{field.key}" is optional but has no default value. Use e.g. `None` as default value')
+                field.info.default = None
+                field.info.required = False
+                # raise ValueError(f'"{field.key}" is optional but has no default value. Use e.g. `None` as default value')
 
         # TODO: arrays
+
+        return field
