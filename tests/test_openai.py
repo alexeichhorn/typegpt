@@ -23,11 +23,12 @@ class TestOpenAIChatCompletion:
         ]
 
         # check if test covers all models (increase if new models are added)
-        assert len(OpenAIChatModel.__args__) == 11  #  type: ignore
+        assert len(OpenAIChatModel.__args__) == 14  #  type: ignore
 
         assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo") == 27
         assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-0301") == 29
         assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-0613") == 27
+        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-1106") == 27
         assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-16k") == 27
         assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-16k-0613") == 27
         assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4") == 27
@@ -36,6 +37,8 @@ class TestOpenAIChatCompletion:
         assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-32k") == 27
         assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-32k-0314") == 27
         assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-32k-0613") == 27
+        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-1106-preview") == 27
+        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-vision-preview") == 27
 
     # -
 

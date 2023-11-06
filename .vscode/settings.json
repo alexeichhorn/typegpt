@@ -5,7 +5,7 @@
     "files.trimFinalNewlines": true,
     "files.insertFinalNewline": true,
     "python.analysis.typeCheckingMode": "basic",
-    "python.linting.pylintEnabled": true,
+    "python.linting.pylintEnabled": false,
     "python.linting.pylintArgs": [
       "--disable=C0111",
       "--disable=no-name-in-module",
