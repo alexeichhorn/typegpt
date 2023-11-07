@@ -50,7 +50,44 @@ Output(adjectives=['young', 'exceptional'], nouns=['athlete', 'skill', 'agility'
 ```
 
 
+### Output Types
+
+Your output type can contain string, integer, float, boolean, or lists of these. It is also possible to mark elements as optional. You can also provide default values.
+
+#### Example 1
+```python
+class Output(BaseLLMResponse):
+    title: str = "My Recipe"
+    description: str | None
+    num_ingredients: int
+    ingredients: list[int]
+    estimated_time: float
+    is_oven_required: bool
+```
+Here, the parser will parse `description` if the LLM returns it, but won't require it. It is `None` by default. The same holds for `title`, as we have a default value here.
+
+
+#### Example 2
+
+You can also define more restrictions or give the LLM more information for some elements:
+
+```python
+class Output(BaseLLMResponse):
+    title: str = LLMOutput(instruction="The title for the recipe.")
+    description: str | None = LLMOutput(instruction="An optional description for the recipe.")
+    num_ingredients: int
+    ingredients: list[int] = LLMArrayOutput(expected_count=(1, 5), instruction=lambda pos: f"The id of the {pos.ordinal} ingredient") # between 1 and 5 ingredients expected
+    estimated_time: float = LLMOutput(instruction="The estimated time to cook")
+    is_oven_required: bool
+```
+
+
+
 ## Advanced Usage
+
+### Automatic Retrying
+
+...
 
 ### Full Static Typesafety
 
