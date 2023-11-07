@@ -57,7 +57,7 @@ class LLMMeta(ABCMeta):
                         default = None
 
                     field = LLMOutputInfo(
-                        instruction=LLMMeta.generate_default_instruction(displayed_name),
+                        instruction=LLMMeta.generate_default_instruction(displayed_name, field_type),
                         default=default,
                         required=(default is _NoDefault),
                         multiline=False,
@@ -98,7 +98,9 @@ class LLMMeta(ABCMeta):
         return name.upper()
 
     @staticmethod
-    def generate_default_instruction(name: str) -> str:
+    def generate_default_instruction(name: str, _type: type) -> str:
+        if _type is bool:
+            return f"'true' if {name.lower()}, else 'false'"
         return f"Put the {name.lower()} here"
 
     @staticmethod

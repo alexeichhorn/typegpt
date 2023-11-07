@@ -19,6 +19,7 @@ class TestPromptFactory:
         cool_integer: int
         connected_floats: list[float]
         mice: list[str]
+        is_active: bool
 
     def test_simple_output_fields(self):
         fields = list(self.SimpleTestOutput.__fields__.values())
@@ -40,6 +41,8 @@ CONNECTED FLOAT 2: <Put the second connected float here>
 MOUSE 1: <Put the first mouse here>
 MOUSE 2: <Put the second mouse here>
 ...
+
+IS ACTIVE: <'true' if is active, else 'false'>
 \"""
 """.strip()
 
