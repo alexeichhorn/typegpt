@@ -87,7 +87,14 @@ class Output(BaseLLMResponse):
 
 ### Automatic Retrying
 
-...
+In some cases GPT might still return an output not following the schema correctly. When this happens the OpenAI client throws `LLMParseException`. To automatically retry whenever the output doesn't meet your schema, you can set `retry_on_parse_error` to the number of retries you want to allow:
+```python
+out = client.chat.completions.generate_output("gpt-3.5-turbo", prompt=prompt, ..., retry_on_parse_error=3)
+```
+Now the library retries calling GPT 3 times before throwing the error. However, make sure you only use this whenever the temperature is not zero.
+
+
+
 
 ### Full Static Typesafety
 
