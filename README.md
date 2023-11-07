@@ -76,14 +76,22 @@ class Output(BaseLLMResponse):
     title: str = LLMOutput(instruction="The title for the recipe.")
     description: str | None = LLMOutput(instruction="An optional description for the recipe.")
     num_ingredients: int
-    ingredients: list[int] = LLMArrayOutput(expected_count=(1, 5), instruction=lambda pos: f"The id of the {pos.ordinal} ingredient") # between 1 and 5 ingredients expected
+    ingredients: list[int] = LLMArrayOutput(expected_count=(1, 5), instruction=lambda pos: f"The id of the {pos.ordinal} ingredient") # between 1 and 5 ingredients expected (and required at parse time)
     estimated_time: float = LLMOutput(instruction="The estimated time to cook")
     is_oven_required: bool
 ```
 
+### Example 3
+
+(Multiline)
+
 
 
 ## Advanced Usage
+
+### Automatic Prompt Reduction
+...
+
 
 ### Automatic Retrying
 
@@ -146,7 +154,39 @@ out = ExamplePrompt.Output.parse_response(completion)
 
 ## How it works
 
+This library automatically generates a LLM-compatible schema from your defined output class and adds instructions to the end of the system prompt to follow this schema.
+For example, for the following prompt:
+```python
+class DemoPrompt(PromptTemplate):
+
+    def system_prompt(self) -> str:
+        return "This is a system prompt"
+
+    def user_prompt(self) -> str:
+        return "This is a user prompt"
+
+    class Output(BaseLLMResponse):
+        title: str
+        description: str = LLMOutput("Custom instruction")
+        mice: list[str]
+```
+
+The following system prompt will be generated:
+```
+This is a system prompt
+
+Always return the answer in the following format:
+"""
+TITLE: <Put the title here>
+DESCRIPTION: <Custom instruction>
+MOUSE 1: <Put the first mouse here>
+MOUSE 2: <Put the second mouse here>
 ...
+"""
+```
+See how the plural "mice" gets automatically converted into singular "mouse" to not confuse the language model.
+
+
 
 
 ## Coming Soon
