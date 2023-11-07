@@ -28,6 +28,7 @@ class ExamplePrompt(PromptTemplate):
         return self.sentence
 
     class Output(BaseLLMResponse):
+        num_sentences: int
         adjectives: list[str]
         nouns: list[str]
         verbs: list[str]
@@ -46,7 +47,7 @@ output = client.chat.completions.generate_output(model="gpt-3.5-turbo", prompt=p
 
 And you get a nice output like this:
 ```python
-Output(adjectives=['young', 'exceptional'], nouns=['athlete', 'skill', 'agility', 'field'], verbs=['demonstrated'])
+Output(num_sentences=1, adjectives=['young', 'exceptional'], nouns=['athlete', 'skill', 'agility', 'field'], verbs=['demonstrated'])
 ```
 
 
