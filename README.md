@@ -33,7 +33,7 @@ class ExamplePrompt(PromptTemplate):
         verbs: list[str]
 ```
 
-If you are using OpenAI as your LLM provider, you can execute the prompt as easy as this:
+If you are using OpenAI as your LLM provider, simply add a "Condom" to your client class name (e.g. `OpenAICondom`, `AsyncOpenAICondom`, or `AzureOpenAICondom`) to make it safe. You can still use it as you would have used it before, but can now also call the `generate_output` function for chat completions like this to generate the output object:
 ```python
 from gpt_condom.openai import OpenAICondom
 
@@ -41,7 +41,7 @@ prompt = ExamplePrompt("The young athlete demonstrated exceptional skill and agi
 
 client = OpenAICondom(api_key="<your api key>") # subclass of `OpenAI`
 
-output = client.chat.completions.generate_output("gpt-3.5-turbo", prompt=prompt, max_output_tokens=1000)
+output = client.chat.completions.generate_output(model="gpt-3.5-turbo", prompt=prompt, max_output_tokens=1000)
 ```
 
 And you get a nice output like this:
