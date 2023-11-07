@@ -2,6 +2,8 @@
 
 It's inheritly hard to make LLMs output in a consistent structure. GPT Condom makes this as easy as defining a class in Python. 
 
+Powering our own projects, such as [BoostSEO](https://boostseo.ai)
+
 
 ## Installation
 
