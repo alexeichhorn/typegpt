@@ -1,6 +1,2 @@
-from ._async.client import AsyncOpenAICondom
-from .views import (
-    AzureChatModel,
-    AzureConfig,
-    OpenAIChatModel,
-)
+from ._async.client import AsyncAzureOpenAICondom, AsyncOpenAICondom
+from .views import AzureChatModel, AzureConfig, OpenAIChatModel

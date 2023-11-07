@@ -1,18 +1,12 @@
 from typing import Mapping
 
 import httpx
-from openai import AsyncOpenAI, resources
+from openai import AsyncAzureOpenAI, AsyncOpenAI, resources
 from openai._constants import DEFAULT_MAX_RETRIES
 from openai._types import NOT_GIVEN, NotGiven
+from openai.lib.azure import AsyncAzureADTokenProvider
 
 from .chat_completion import AsyncChatCompletionCondom
-
-# region - Sync client
-
-# TODO: implement
-
-# endregion
-# region - Async client
 
 
 class AsyncChatCondom(resources.chat.AsyncChat):
@@ -38,6 +32,8 @@ class AsyncOpenAICondom(AsyncOpenAI):
         default_query: Mapping[str, object] | None = None,
         # Configure a custom httpx client. See the [httpx documentation](https://www.python-httpx.org/api/#asyncclient) for more details.
         http_client: httpx.AsyncClient | None = None,
+        # only needed to have same subclass capabilities (i.e. for Azure)
+        _strict_response_validation: bool = False,
     ) -> None:
         super().__init__(
             api_key=api_key,
@@ -52,4 +48,5 @@ class AsyncOpenAICondom(AsyncOpenAI):
         self.chat = AsyncChatCondom(self)
 
 
-# endregion
+class AsyncAzureOpenAICondom(AsyncAzureOpenAI, AsyncOpenAICondom):
+    ...
