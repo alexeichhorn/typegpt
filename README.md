@@ -98,7 +98,31 @@ class Output(BaseLLMResponse):
 ## Advanced Usage
 
 ### Automatic Prompt Reduction
-...
+You might have a prompt that uses unpredictable many tokens due to some potentially large dependencies. To make sure your prompt always fits wihtin the LLMs token limit, you can implement the function `reduce_if_possible` inside your prompt class:
+```python
+class Summaryrompt(PromptTemplate):
+
+    def __init__(self, article: str):
+        self.article = article
+
+    def system_prompt(self) -> str:
+        return "Summarize the given news article"
+
+    def user_prompt(self) -> str:
+        return f"ARTICLE: {self.article}"
+
+    def reduce_if_possible(self) -> bool:
+        if len(self.article) > 100:
+            # remove last 100 characters at a time
+            self.article = self.article[:100]
+            return True
+        return False
+
+    class Output(BaseLLMResponse):
+        summary: str
+```
+Inside the `reduce_if_possible` function you should reduce the size of your prompt in small steps and return `True` if successfully reduced. The function gets called over and over again until the prompt fits.
+When calling the openai `generate_output` function this automatically ensures the prompt fits for the given models. Additionally, you can also specify a custom input token limit with the same effect to save costs: `client.chat.completions.generate_output(..., max_input_tokens=2000)`.
 
 
 ### Automatic Retrying
