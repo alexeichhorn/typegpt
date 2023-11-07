@@ -19,12 +19,11 @@ from ..base_chat_completion import BaseChatCompletions
 from ..exceptions import AzureContentFilterException
 from ..views import AzureChatModel, OpenAIChatModel
 
-# Prompt = TypeVar("Prompt", bound=PromptTemplate)
 _Output = TypeVar("_Output", bound=BaseLLMResponse)
 
 
-class AsyncChatCompletionCondom(resources.chat.AsyncCompletions, BaseChatCompletions):
-    async def generate_completion(
+class ChatCompletionCondom(resources.chat.Completions, BaseChatCompletions):
+    def generate_completion(
         self,
         model: OpenAIChatModel | AzureChatModel,
         messages: list[ChatCompletionMessageParam],
@@ -54,7 +53,7 @@ class AsyncChatCompletionCondom(resources.chat.AsyncCompletions, BaseChatComplet
             is_azure = False
 
         try:
-            result = await self.create(
+            result = self.create(
                 model=raw_model,
                 messages=messages,
                 frequency_penalty=frequency_penalty,
@@ -92,7 +91,7 @@ class AsyncChatCompletionCondom(resources.chat.AsyncCompletions, BaseChatComplet
                 raise e
 
     @overload
-    async def generate_output(
+    def generate_output(
         self,
         model: OpenAIChatModel | AzureChatModel,
         prompt: PromptTemplate,
@@ -111,7 +110,7 @@ class AsyncChatCompletionCondom(resources.chat.AsyncCompletions, BaseChatComplet
         ...
 
     @overload
-    async def generate_output(
+    def generate_output(
         self,
         model: OpenAIChatModel | AzureChatModel,
         prompt: PromptTemplate,
@@ -129,7 +128,7 @@ class AsyncChatCompletionCondom(resources.chat.AsyncCompletions, BaseChatComplet
     ) -> BaseLLMResponse:
         ...
 
-    async def generate_output(
+    def generate_output(
         self,
         model: OpenAIChatModel | AzureChatModel,
         prompt: PromptTemplate,
@@ -172,7 +171,7 @@ class AsyncChatCompletionCondom(resources.chat.AsyncCompletions, BaseChatComplet
             token_limit=max_prompt_length, token_counter=lambda messages: self.num_tokens_from_messages(messages, model=model_type)
         )
 
-        completion = await self.generate_completion(
+        completion = self.generate_completion(
             model=model,
             messages=cast(list[ChatCompletionMessageParam], messages),
             max_tokens=max_output_tokens,
@@ -192,7 +191,7 @@ class AsyncChatCompletionCondom(resources.chat.AsyncCompletions, BaseChatComplet
                 return output_type.parse_response(completion)
         except LLMParseException as e:
             if retry_on_parse_error > 0:
-                return await self.generate_output(
+                return self.generate_output(
                     model=model,
                     prompt=prompt,
                     max_output_tokens=max_output_tokens,

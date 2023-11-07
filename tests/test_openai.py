@@ -15,7 +15,7 @@ from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
 from gpt_condom import BaseLLMResponse, LLMArrayOutput, PromptTemplate
 from gpt_condom.exceptions import LLMTokenLimitExceeded
-from gpt_condom.openai import AsyncOpenAICondom, OpenAIChatModel
+from gpt_condom.openai import AsyncAzureOpenAICondom, AsyncOpenAICondom, AzureOpenAICondom, OpenAIChatModel, OpenAICondom
 
 
 class TestOpenAIChatCompletion:
@@ -108,6 +108,179 @@ class TestOpenAIChatCompletion:
             count: int
 
         result_alt = await client.chat.completions.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            output_type=AlternativeOutput,
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result_alt, AlternativeOutput)
+        assert result_alt.count == 9
+        assert not hasattr(result_alt, "title")
+
+    @pytest.mark.asyncio
+    async def test_mock_end_to_end_azure(Self, mock_openai_completion):
+        class FullExamplePrompt(PromptTemplate):
+            def system_prompt(self) -> str:
+                return "This is a random system prompt"
+
+            def user_prompt(self) -> str:
+                return "This is a random user prompt"
+
+            class Output(BaseLLMResponse):
+                title: str
+                count: int
+
+        client = AsyncAzureOpenAICondom(api_key="mock", azure_endpoint="mock", api_version="mock")
+
+        result = await client.chat.completions.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            output_type=FullExamplePrompt.Output,
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result, FullExamplePrompt.Output)
+        assert result.title == "This is a test completion"
+        assert result.count == 9
+
+        result_base = await client.chat.completions.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result, FullExamplePrompt.Output)
+        assert result.title == "This is a test completion"
+        assert result.count == 9
+
+        # -
+
+        class AlternativeOutput(BaseLLMResponse):
+            count: int
+
+        result_alt = await client.chat.completions.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            output_type=AlternativeOutput,
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result_alt, AlternativeOutput)
+        assert result_alt.count == 9
+        assert not hasattr(result_alt, "title")
+
+    @pytest.fixture
+    def mock_openai_completion_sync(self, mocker):
+        def sync_mock(*args, **kwargs):
+            return ChatCompletion(
+                id="test",
+                model="gpt-3.5-turbo",
+                object="chat.completion",
+                created=123,
+                choices=[
+                    Choice(
+                        finish_reason="stop",
+                        index=1,
+                        message=ChatCompletionMessage(role="assistant", content="TITLE: This is a test completion\nCOUNT: 09"),
+                    )
+                ],
+            )
+
+        mocker.patch("gpt_condom.openai._sync.chat_completion.ChatCompletionCondom.create", new=sync_mock)
+
+    def test_mock_end_to_end_sync(self, mock_openai_completion_sync):
+        class FullExamplePrompt(PromptTemplate):
+            def system_prompt(self) -> str:
+                return "This is a random system prompt"
+
+            def user_prompt(self) -> str:
+                return "This is a random user prompt"
+
+            class Output(BaseLLMResponse):
+                title: str
+                count: int
+
+        client = OpenAICondom(api_key="mock")
+
+        result = client.chat.completions.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            output_type=FullExamplePrompt.Output,
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result, FullExamplePrompt.Output)
+        assert result.title == "This is a test completion"
+        assert result.count == 9
+
+        result_base = client.chat.completions.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result, FullExamplePrompt.Output)
+        assert result.title == "This is a test completion"
+        assert result.count == 9
+
+        # -
+
+        class AlternativeOutput(BaseLLMResponse):
+            count: int
+
+        result_alt = client.chat.completions.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            output_type=AlternativeOutput,
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result_alt, AlternativeOutput)
+        assert result_alt.count == 9
+        assert not hasattr(result_alt, "title")
+
+    def test_mock_end_to_end_sync_azure(self, mock_openai_completion_sync):
+        class FullExamplePrompt(PromptTemplate):
+            def system_prompt(self) -> str:
+                return "This is a random system prompt"
+
+            def user_prompt(self) -> str:
+                return "This is a random user prompt"
+
+            class Output(BaseLLMResponse):
+                title: str
+                count: int
+
+        client = AzureOpenAICondom(api_key="mock", azure_endpoint="mock", api_version="mock")
+
+        result = client.chat.completions.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            output_type=FullExamplePrompt.Output,
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result, FullExamplePrompt.Output)
+        assert result.title == "This is a test completion"
+        assert result.count == 9
+
+        result_base = client.chat.completions.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=FullExamplePrompt(),
+            max_output_tokens=100,
+        )
+
+        assert isinstance(result, FullExamplePrompt.Output)
+        assert result.title == "This is a test completion"
+        assert result.count == 9
+
+        # -
+
+        class AlternativeOutput(BaseLLMResponse):
+            count: int
+
+        result_alt = client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
             prompt=FullExamplePrompt(),
             output_type=AlternativeOutput,
