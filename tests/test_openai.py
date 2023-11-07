@@ -8,11 +8,14 @@ from typing import List, Optional, Union
 from unittest.mock import Mock
 
 import pytest
+from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletion
+from openai.types.chat.chat_completion import Choice
+from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
 from gpt_condom import BaseLLMResponse, LLMArrayOutput, PromptTemplate
 from gpt_condom.exceptions import LLMTokenLimitExceeded
-from gpt_condom.openai import OpenAIChatCompletion
-from gpt_condom.openai.chat_completion import OpenAIChatModel, openai
+from gpt_condom.openai import AsyncOpenAICondom, OpenAIChatModel
 
 
 class TestOpenAIChatCompletion:
@@ -25,41 +28,43 @@ class TestOpenAIChatCompletion:
         # check if test covers all models (increase if new models are added)
         assert len(OpenAIChatModel.__args__) == 14  #  type: ignore
 
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-0301") == 29
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-0613") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-1106") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-16k") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-16k-0613") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-0314") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-0613") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-32k") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-32k-0314") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-32k-0613") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-1106-preview") == 27
-        assert OpenAIChatCompletion.num_tokens_from_messages(test_messages, model="gpt-4-vision-preview") == 27
+        client = AsyncOpenAICondom(api_key="mock")
+
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-0301") == 29
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-0613") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-1106") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-16k") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-16k-0613") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-4") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-4-0314") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-4-0613") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-4-32k") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-4-32k-0314") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-4-32k-0613") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-4-1106-preview") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-4-vision-preview") == 27
 
     # -
 
     @pytest.fixture
     def mock_openai_completion(self, mocker):
         async def async_mock(*args, **kwargs):
-            return {
-                "id": "test",
-                "model": "gpt-3.5-turbo",
-                "object": "x",
-                "created": 123,
-                "choices": [
-                    {
-                        "finish_reason": "stop",
-                        "index": 1,
-                        "message": {"role": "assistant", "content": "TITLE: This is a test completion\nCOUNT: 09"},
-                    }
+            return ChatCompletion(
+                id="test",
+                model="gpt-3.5-turbo",
+                object="chat.completion",
+                created=123,
+                choices=[
+                    Choice(
+                        finish_reason="stop",
+                        index=1,
+                        message=ChatCompletionMessage(role="assistant", content="TITLE: This is a test completion\nCOUNT: 09"),
+                    )
                 ],
-            }
+            )
 
-        mocker.patch("gpt_condom.openai.chat_completion.openai.ChatCompletion.acreate", new=async_mock)
+        mocker.patch("gpt_condom.openai._async.chat_completion.AsyncChatCompletionCondom.create", new=async_mock)
 
     @pytest.mark.asyncio
     async def test_mock_end_to_end(self, mock_openai_completion):
@@ -74,7 +79,9 @@ class TestOpenAIChatCompletion:
                 title: str
                 count: int
 
-        result = await OpenAIChatCompletion.generate_output(
+        client = AsyncOpenAICondom(api_key="mock")
+
+        result = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
             prompt=FullExamplePrompt(),
             output_type=FullExamplePrompt.Output,
@@ -85,7 +92,7 @@ class TestOpenAIChatCompletion:
         assert result.title == "This is a test completion"
         assert result.count == 9
 
-        result_base = await OpenAIChatCompletion.generate_output(
+        result_base = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
             prompt=FullExamplePrompt(),
             max_output_tokens=100,
@@ -100,7 +107,7 @@ class TestOpenAIChatCompletion:
         class AlternativeOutput(BaseLLMResponse):
             count: int
 
-        result_alt = await OpenAIChatCompletion.generate_output(
+        result_alt = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
             prompt=FullExamplePrompt(),
             output_type=AlternativeOutput,
@@ -132,21 +139,21 @@ class TestOpenAIChatCompletion:
             else:
                 content_res = "TITLE: Only title\nITEM 1: abc"
 
-            return {
-                "id": "test",
-                "model": "gpt-3.5-turbo",
-                "object": "x",
-                "created": 123,
-                "choices": [
-                    {
-                        "finish_reason": "stop",
-                        "index": 1,
-                        "message": {"role": "assistant", "content": content_res},
-                    }
+            return ChatCompletion(
+                id="test",
+                model="gpt-3.5-turbo",
+                object="chat.completion",
+                created=123,
+                choices=[
+                    Choice(
+                        finish_reason="stop",
+                        index=1,
+                        message=ChatCompletionMessage(role="assistant", content=content_res),
+                    )
                 ],
-            }
+            )
 
-        mocker.patch("gpt_condom.openai.chat_completion.openai.ChatCompletion.acreate", new=async_mock)
+        mocker.patch("gpt_condom.openai._async.chat_completion.AsyncChatCompletionCondom.create", new=async_mock)
 
     @pytest.mark.asyncio
     async def test_mock_end_to_end_parse_retry(self, mock_openai_retry_completion):
@@ -162,7 +169,9 @@ class TestOpenAIChatCompletion:
                 items: list[str] = LLMArrayOutput((1, 2), instruction=lambda _: "Put the items here")
                 count: int
 
-        result = await OpenAIChatCompletion.generate_output(
+        client = AsyncOpenAICondom(api_key="mock")
+
+        result = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo", prompt=FullExamplePrompt(), max_output_tokens=100, retry_on_parse_error=5
         )
 
@@ -188,7 +197,9 @@ class TestOpenAIChatCompletion:
 
         non_reducing_prompt_100 = NonAutomaticReducingPrompt(100)
 
-        result = await OpenAIChatCompletion.generate_output(
+        client = AsyncOpenAICondom(api_key="mock")
+
+        result = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
             prompt=non_reducing_prompt_100,
             max_output_tokens=100,
@@ -197,7 +208,7 @@ class TestOpenAIChatCompletion:
         non_reducing_prompt_1000 = NonAutomaticReducingPrompt(1000)
 
         with pytest.raises(LLMTokenLimitExceeded):
-            result = await OpenAIChatCompletion.generate_output(
+            result = await client.chat.completions.generate_output(
                 model="gpt-3.5-turbo",
                 prompt=non_reducing_prompt_1000,
                 max_output_tokens=100,
@@ -225,7 +236,7 @@ class TestOpenAIChatCompletion:
 
         reducing_prompt_100 = ReducingTestPrompt(100)
 
-        result = await OpenAIChatCompletion.generate_output(
+        result = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
             prompt=reducing_prompt_100,
             max_output_tokens=100,
@@ -235,7 +246,7 @@ class TestOpenAIChatCompletion:
 
         reducing_prompt_1000 = ReducingTestPrompt(1000)
 
-        result = await OpenAIChatCompletion.generate_output(
+        result = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
             prompt=reducing_prompt_1000,
             max_output_tokens=100,
