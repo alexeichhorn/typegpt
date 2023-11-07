@@ -98,7 +98,7 @@ class ChatCompletionCondom(resources.chat.Completions, BaseChatCompletions):
         max_output_tokens: int,
         output_type: type[_Output],
         max_input_tokens: int | None = None,
-        frequency_penalty: float | None = None,  # [-2, 2]
+        frequency_penalty: float | None | NotGiven = NOT_GIVEN,  # [-2, 2]
         n: int | None | NotGiven = NOT_GIVEN,
         presence_penalty: float | None | NotGiven = NOT_GIVEN,  # [-2, 2]
         temperature: float | NotGiven = NOT_GIVEN,
@@ -117,7 +117,7 @@ class ChatCompletionCondom(resources.chat.Completions, BaseChatCompletions):
         max_output_tokens: int,
         output_type: _UseDefaultType = _UseDefault,
         max_input_tokens: int | None = None,
-        frequency_penalty: float | None = None,  # [-2, 2]
+        frequency_penalty: float | None | NotGiven = NOT_GIVEN,  # [-2, 2]
         n: int | None | NotGiven = NOT_GIVEN,
         presence_penalty: float | None | NotGiven = NOT_GIVEN,  # [-2, 2]
         temperature: float | NotGiven = NOT_GIVEN,
@@ -135,7 +135,7 @@ class ChatCompletionCondom(resources.chat.Completions, BaseChatCompletions):
         max_output_tokens: int,
         output_type: type[_Output] | _UseDefaultType = _UseDefault,
         max_input_tokens: int | None = None,
-        frequency_penalty: float | None = None,  # [-2, 2]
+        frequency_penalty: float | None | NotGiven = NOT_GIVEN,  # [-2, 2]
         n: int | None | NotGiven = NOT_GIVEN,
         presence_penalty: float | None | NotGiven = NOT_GIVEN,  # [-2, 2]
         temperature: float | NotGiven = NOT_GIVEN,

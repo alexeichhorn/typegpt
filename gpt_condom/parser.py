@@ -64,7 +64,9 @@ class Parser(Generic[_Output]):
 
             elif isinstance(field.info, LLMArrayOutputInfo):
                 matches = re.finditer(pattern, response)
-                field_values[field.key] = [m.group("content").strip() for m in matches]
+                items = [m.group("content").strip() for m in matches]
+                items = [i for i in items if i]
+                field_values[field.key] = items
 
         output = self.output_type(**field_values)
         output._set_raw_completion(raw_response)

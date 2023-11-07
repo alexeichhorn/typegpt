@@ -37,7 +37,7 @@ class BaseLLMResponse(metaclass=LLMMeta):
             super().__setattr__(__name, __value)
 
     def __repr__(self) -> str:
-        attrs = ", ".join(f"{k}={v}" for k, v in self.__dict__.items())
+        attrs = ", ".join(f"{k}={v}" for k, v in self.__dict__.items() if not k.startswith("_"))
         return f"{self.__class__.__name__}({attrs})"
 
     def _prepare_field_value(self, value: Any, _type: type) -> Any:
