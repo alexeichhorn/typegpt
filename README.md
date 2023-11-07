@@ -50,3 +50,17 @@ Output(adjectives=['young', 'exceptional'], nouns=['athlete', 'skill', 'agility'
 ```
 
 
+## Advanced Usage
+
+### Full Static Typesafety
+
+```python
+prompt = ExamplePrompt(...)
+output = client.chat.completions.generate_output(model="gpt-4", prompt=prompt, ...)
+```
+Due to Python's limited type system, the output type is of type `BaseLLMResponse` instead of the explicit subclass `ExamplePrompt.Output`. To achieve full type-safety in your code, simply add the parameter `output_type=ExamplePrompt.Output`:
+```python
+prompt = ExamplePrompt(...)
+output = client.chat.completions.generate_output(model="gpt-4", prompt=prompt, output_type=ExamplePrompt.Output, ...)
+```
+This parameter isn't simply a type decorator. It can also be used to overwrite the actual output type, GPT tries to predict.
