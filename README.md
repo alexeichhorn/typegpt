@@ -65,6 +65,7 @@ output = client.chat.completions.generate_output(model="gpt-4", prompt=prompt, o
 ```
 This parameter isn't simply a type decorator. It can also be used to overwrite the actual output type, GPT tries to predict.
 
+
 ### Azure
 
 Make sure to use the `AzureChatModel` as model when generating the output, which consists of the deployment_id and the corresponding base model (this is used for automatically reducing prompts if needed).
@@ -79,6 +80,24 @@ client = client = AzureOpenAICondom(
 
 out = client.chat.completions.generate_output(model=AzureChatModel(deployment_id="gpt-35-turbo", base_model="gpt-3.5-turbo"), prompt=prompt, max_output_tokens=1000)
 ```
+
+### Non-OpenAI LLM support
+
+Any LLM that has a notion of system and user prompt can use this library. Simply generate the system and user messages (including the schema prompt) like this:
+```python
+messages = prompt.generate_messages(
+    token_limit=max_prompt_length, token_counter=lambda messages: num_tokens_from_messages(messages)
+)
+```
+where `max_prompt_length` is the maximum amount of tokens the prompt is allowed to use and `num_tokens_from_messages` needs to be a function that counts the predicted token usage for a given list of messages. Simply return `0` here, if you don't want to automatically reduce the size of a prompt.
+
+Use the generated messages to call your LLM. Use the completion string you received back like this to parse it into the desired output class:
+```python
+out = ExamplePrompt.Output.parse_response(completion)
+```
+
+
+
 
 
 ## How it works
