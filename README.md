@@ -64,3 +64,28 @@ prompt = ExamplePrompt(...)
 output = client.chat.completions.generate_output(model="gpt-4", prompt=prompt, output_type=ExamplePrompt.Output, ...)
 ```
 This parameter isn't simply a type decorator. It can also be used to overwrite the actual output type, GPT tries to predict.
+
+### Azure
+
+Make sure to use the `AzureChatModel` as model when generating the output, which consists of the deployment_id and the corresponding base model (this is used for automatically reducing prompts if needed).
+```python
+from gpt_condom.openai import AzureChatModel, AzureOpenAICondom
+
+client = client = AzureOpenAICondom(
+    azure_endpoint="<your azure endpoint>",
+    api_key="<your api key>",
+    api_version="2023-05-15",
+)
+
+out = client.chat.completions.generate_output(model=AzureChatModel(deployment_id="gpt-35-turbo", base_model="gpt-3.5-turbo"), prompt=prompt, max_output_tokens=1000)
+```
+
+
+## How it works
+
+...
+
+
+## Coming Soon
+
+- Support for output classes within output classes, especially arrays
