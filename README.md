@@ -83,7 +83,15 @@ class Output(BaseLLMResponse):
 
 ### Example 3
 
-(Multiline)
+By default, the library always expects only one line response per element. You can overwrite this by setting `multiline=True` in `LLMOutput`:
+```python
+class Output(BaseLLMResponse):
+    description: str  = LLMOutput(instruction="A description for the recipe.", multiline=True)
+    items: list[str] = LLMArrayOutput(expected_count=5, instruction=lambda pos: f"The {pos.ordinal} item in the list", multiline=True)
+
+```
+
+
 
 
 
@@ -155,7 +163,7 @@ out = ExamplePrompt.Output.parse_response(completion)
 ## How it works
 
 This library automatically generates a LLM-compatible schema from your defined output class and adds instructions to the end of the system prompt to follow this schema.
-For example, for the following prompt:
+For example, for the following abstract prompt:
 ```python
 class DemoPrompt(PromptTemplate):
 
