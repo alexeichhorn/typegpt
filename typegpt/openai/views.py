@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Literal, TypedDict
 
-from pydantic import BaseModel
-
 OpenAIChatModel = Literal[
     "gpt-3.5-turbo",  # 3.5 turbo
     "gpt-3.5-turbo-0301",

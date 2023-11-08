@@ -17,7 +17,6 @@ setuptools.setup(
         "inflect>=7.0.0",
         "tiktoken>=0.5.0",
         "openai>=1.1.0",
-        "pydantic>=1.10,<3.0",
     ],
     packages=setuptools.find_packages(),
     classifiers=["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent"],
