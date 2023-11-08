@@ -8,10 +8,10 @@ import logging
 
 import pytest
 
-from gpt_condom import BaseLLMResponse, LLMArrayOutput, LLMOutput, PromptTemplate
-from gpt_condom.exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
-from gpt_condom.fields import ExamplePosition, LLMArrayOutputInfo
-from gpt_condom.utils.internal_types import _NoDefault
+from typegpt import BaseLLMResponse, LLMArrayOutput, LLMOutput, PromptTemplate
+from typegpt.exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
+from typegpt.fields import ExamplePosition, LLMArrayOutputInfo
+from typegpt.utils.internal_types import _NoDefault
 
 
 class TestFields:

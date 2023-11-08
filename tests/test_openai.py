@@ -13,9 +13,9 @@ from openai.types.chat import ChatCompletion
 from openai.types.chat.chat_completion import Choice
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
-from gpt_condom import BaseLLMResponse, LLMArrayOutput, PromptTemplate
-from gpt_condom.exceptions import LLMTokenLimitExceeded
-from gpt_condom.openai import AsyncAzureOpenAICondom, AsyncOpenAICondom, AzureOpenAICondom, OpenAIChatModel, OpenAICondom
+from typegpt import BaseLLMResponse, LLMArrayOutput, PromptTemplate
+from typegpt.exceptions import LLMTokenLimitExceeded
+from typegpt.openai import AsyncTypeAzureOpenAI, AsyncTypeOpenAI, TypeAzureOpenAI, OpenAIChatModel, TypeOpenAI
 
 
 class TestOpenAIChatCompletion:
@@ -28,7 +28,7 @@ class TestOpenAIChatCompletion:
         # check if test covers all models (increase if new models are added)
         assert len(OpenAIChatModel.__args__) == 14  #  type: ignore
 
-        client = AsyncOpenAICondom(api_key="mock")
+        client = AsyncTypeOpenAI(api_key="mock")
 
         assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo") == 27
         assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-0301") == 29
@@ -64,7 +64,7 @@ class TestOpenAIChatCompletion:
                 ],
             )
 
-        mocker.patch("gpt_condom.openai._async.chat_completion.AsyncChatCompletionCondom.create", new=async_mock)
+        mocker.patch("typegpt.openai._async.chat_completion.AsyncTypeChatCompletion.create", new=async_mock)
 
     @pytest.mark.asyncio
     async def test_mock_end_to_end(self, mock_openai_completion):
@@ -79,7 +79,7 @@ class TestOpenAIChatCompletion:
                 title: str
                 count: int
 
-        client = AsyncOpenAICondom(api_key="mock")
+        client = AsyncTypeOpenAI(api_key="mock")
 
         result = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
@@ -131,7 +131,7 @@ class TestOpenAIChatCompletion:
                 title: str
                 count: int
 
-        client = AsyncAzureOpenAICondom(api_key="mock", azure_endpoint="mock", api_version="mock")
+        client = AsyncTypeAzureOpenAI(api_key="mock", azure_endpoint="mock", api_version="mock")
 
         result = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
@@ -187,7 +187,7 @@ class TestOpenAIChatCompletion:
                 ],
             )
 
-        mocker.patch("gpt_condom.openai._sync.chat_completion.ChatCompletionCondom.create", new=sync_mock)
+        mocker.patch("typegpt.openai._sync.chat_completion.TypeChatCompletion.create", new=sync_mock)
 
     def test_mock_end_to_end_sync(self, mock_openai_completion_sync):
         class FullExamplePrompt(PromptTemplate):
@@ -201,7 +201,7 @@ class TestOpenAIChatCompletion:
                 title: str
                 count: int
 
-        client = OpenAICondom(api_key="mock")
+        client = TypeOpenAI(api_key="mock")
 
         result = client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
@@ -252,7 +252,7 @@ class TestOpenAIChatCompletion:
                 title: str
                 count: int
 
-        client = AzureOpenAICondom(api_key="mock", azure_endpoint="mock", api_version="mock")
+        client = TypeAzureOpenAI(api_key="mock", azure_endpoint="mock", api_version="mock")
 
         result = client.chat.completions.generate_output(
             model="gpt-3.5-turbo",
@@ -326,7 +326,7 @@ class TestOpenAIChatCompletion:
                 ],
             )
 
-        mocker.patch("gpt_condom.openai._async.chat_completion.AsyncChatCompletionCondom.create", new=async_mock)
+        mocker.patch("typegpt.openai._async.chat_completion.AsyncTypeChatCompletion.create", new=async_mock)
 
     @pytest.mark.asyncio
     async def test_mock_end_to_end_parse_retry(self, mock_openai_retry_completion):
@@ -342,7 +342,7 @@ class TestOpenAIChatCompletion:
                 items: list[str] = LLMArrayOutput((1, 2), instruction=lambda _: "Put the items here")
                 count: int
 
-        client = AsyncOpenAICondom(api_key="mock")
+        client = AsyncTypeOpenAI(api_key="mock")
 
         result = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo", prompt=FullExamplePrompt(), max_output_tokens=100, retry_on_parse_error=5
@@ -370,7 +370,7 @@ class TestOpenAIChatCompletion:
 
         non_reducing_prompt_100 = NonAutomaticReducingPrompt(100)
 
-        client = AsyncOpenAICondom(api_key="mock")
+        client = AsyncTypeOpenAI(api_key="mock")
 
         result = await client.chat.completions.generate_output(
             model="gpt-3.5-turbo",

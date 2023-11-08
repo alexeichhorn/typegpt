@@ -8,9 +8,9 @@ from typing import Any, List, Literal, Optional
 
 import pytest
 
-from gpt_condom import BaseLLMResponse, LLMArrayOutput, LLMOutput
-from gpt_condom.exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
-from gpt_condom.fields import ExamplePosition, LLMArrayOutputInfo
+from typegpt import BaseLLMResponse, LLMArrayOutput, LLMOutput
+from typegpt.exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
+from typegpt.fields import ExamplePosition, LLMArrayOutputInfo
 
 
 class TestResponseObject:

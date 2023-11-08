@@ -23,7 +23,7 @@ from ..views import AzureChatModel, OpenAIChatModel
 _Output = TypeVar("_Output", bound=BaseLLMResponse)
 
 
-class AsyncChatCompletionCondom(resources.chat.AsyncCompletions, BaseChatCompletions):
+class AsyncTypeChatCompletion(resources.chat.AsyncCompletions, BaseChatCompletions):
     async def generate_completion(
         self,
         model: OpenAIChatModel | AzureChatModel,

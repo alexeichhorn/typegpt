@@ -4,14 +4,14 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setuptools.setup(
-    name="gpt-condom",
+    name="typegpt",
     version="0.0.1",
     author="Alexander Eichhorn",
     author_email="",
-    description="GPT Condom - Make GPT safe for production",
+    description="TypeGPT - Make GPT safe for production",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/alexeichhorn/gpt-condom",
+    url="https://github.com/alexeichhorn/typegpt",
     install_requires=[
         "typing_extensions>=4.1.0",
         "inflect>=7.0.0",
