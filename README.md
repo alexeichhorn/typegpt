@@ -1,6 +1,6 @@
-# GPT Condom - Make GPT safe for production
+# TypeGPT - Make GPT safe for production
 
-It's inheritly hard to make LLMs output in a consistent structure. GPT Condom makes this as easy as defining a class in Python. 
+It's inheritly hard to make LLMs output in a consistent structure. TypeGPT makes this as easy as defining a class in Python. 
 
 Powering our own projects, such as [BoostSEO](https://boostseo.ai)
 
@@ -8,7 +8,7 @@ Powering our own projects, such as [BoostSEO](https://boostseo.ai)
 ## Installation
 
 ```bash
-pip install gpt-condom
+pip install typegpt
 ```
 
 ## Usage
@@ -16,7 +16,7 @@ pip install gpt-condom
 Define your prompt and desired output schema as a subclass in Python:
 
 ```python
-from gpt_condom import BaseLLMResponse, PromptTemplate
+from typegpt import BaseLLMResponse, PromptTemplate
 
 class ExamplePrompt(PromptTemplate):
 
@@ -36,13 +36,13 @@ class ExamplePrompt(PromptTemplate):
         verbs: list[str]
 ```
 
-If you are using OpenAI as your LLM provider, simply add a "Condom" to your client class name (e.g. `OpenAICondom`, `AsyncOpenAICondom`, or `AzureOpenAICondom`) to make it safe. You can still use it as you would have used it before, but can now also call the `generate_output` function for chat completions like this to generate the output object:
+If you are using OpenAI as your LLM provider, simply exchange the OpenAI client class name with the sublass `TypeOpenAI` (for async `AsyncTypeOpenAI` or for Azure `TypeAzureOpenAI`/`AsyncTypeAzureOpenAI`) to make it safe. You can still use it as you would have used it before, but can now also call the `generate_output` function for chat completions like this to generate the output object:
 ```python
-from gpt_condom.openai import OpenAICondom
+from typegpt.openai import TypeOpenAI
 
 prompt = ExamplePrompt("The young athlete demonstrated exceptional skill and agility on the field.")
 
-client = OpenAICondom(api_key="<your api key>") # subclass of `OpenAI`
+client = TypeOpenAI(api_key="<your api key>") # subclass of `OpenAI`
 
 output = client.chat.completions.generate_output(model="gpt-3.5-turbo", prompt=prompt, max_output_tokens=1000)
 ```
@@ -157,9 +157,9 @@ This parameter isn't simply a type decorator. It can also be used to overwrite t
 
 Make sure to use the `AzureChatModel` as model when generating the output, which consists of the deployment_id and the corresponding base model (this is used for automatically reducing prompts if needed).
 ```python
-from gpt_condom.openai import AzureChatModel, AzureOpenAICondom
+from typegpt.openai import AzureChatModel, TypeAzureOpenAI
 
-client = client = AzureOpenAICondom(
+client = client = TypeAzureOpenAI(
     azure_endpoint="<your azure endpoint>",
     api_key="<your api key>",
     api_version="2023-05-15",
