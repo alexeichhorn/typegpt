@@ -14,7 +14,8 @@
       "${workspaceFolder}/setup.cfg"
     ],
     "isort.args": ["-l", "140"],
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "black-formatter.args": ["--line-length", "140"],
     "python.formatting.provider": "black",
     "python.formatting.blackArgs": ["--line-length", "140"],
     "python.linting.enabled": true,

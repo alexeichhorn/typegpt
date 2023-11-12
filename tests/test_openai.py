@@ -13,9 +13,9 @@ from openai.types.chat import ChatCompletion
 from openai.types.chat.chat_completion import Choice
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
-from typegpt import BaseLLMResponse, LLMArrayOutput, PromptTemplate
+from typegpt import BaseLLMResponse, LLMArrayOutput, LLMOutput, PromptTemplate
 from typegpt.exceptions import LLMTokenLimitExceeded
-from typegpt.openai import AsyncTypeAzureOpenAI, AsyncTypeOpenAI, TypeAzureOpenAI, OpenAIChatModel, TypeOpenAI
+from typegpt.openai import AsyncTypeAzureOpenAI, AsyncTypeOpenAI, OpenAIChatModel, TypeAzureOpenAI, TypeOpenAI
 
 
 class TestOpenAIChatCompletion:
@@ -424,3 +424,38 @@ class TestOpenAIChatCompletion:
             prompt=reducing_prompt_1000,
             max_output_tokens=100,
         )
+
+    # -
+
+    def test_dynamic_output_type(self, mock_openai_completion_sync):
+        class FullExamplePrompt(PromptTemplate):
+            def __init__(self, name: str):
+                self.name = name
+
+            def system_prompt(self) -> str:
+                return "This is a random system prompt"
+
+            def user_prompt(self) -> str:
+                return "This is a random user prompt"
+
+            @property
+            def Output(self):
+                class Output(BaseLLMResponse):
+                    title: str = LLMOutput(f"The title of {self.name}")
+                    count: int
+
+                return Output
+
+        client = TypeOpenAI(api_key="mock")
+
+        prompt = FullExamplePrompt("test")
+
+        result = client.chat.completions.generate_output(
+            model="gpt-3.5-turbo",
+            prompt=prompt,
+            output_type=prompt.Output,
+            max_output_tokens=100,
+        )
+
+        assert result.title == "This is a test completion"
+        assert result.count == 9
