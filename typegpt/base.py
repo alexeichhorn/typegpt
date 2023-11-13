@@ -1,21 +1,19 @@
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 from .exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
-from .fields import ClassPlaceholder, LLMArrayOutputInfo, LLMFieldInfo, LLMOutputInfo
-from .meta import LLMMeta
+from .fields import ClassPlaceholder, LLMArrayElementOutputInfo, LLMArrayOutputInfo, LLMFieldInfo, LLMOutputInfo
+from .meta import LLMArrayElementMeta, LLMBaseMeta
 from .parser import Parser
-from .utils.type_checker import SupportedBaseTypes, array_item_type
 
 if TYPE_CHECKING:
     from inspect import Signature
 
 
-class BaseLLMResponse(metaclass=LLMMeta):
+class _InternalBaseLLMResponse:
     if TYPE_CHECKING:
         # populated by the metaclass (ClassPlaceholder used to prevent showing up as type suggestion)
         __fields__: ClassVar[dict[str, LLMFieldInfo]] = ClassPlaceholder(init=False, value={})
         __signature__: ClassVar["Signature"] = ClassPlaceholder(init=False)
-        __raw_completion__: str = ClassPlaceholder(init=False, value="")
 
     def __init__(self, **data: Any):
         # print(data)
@@ -74,6 +72,8 @@ class BaseLLMResponse(metaclass=LLMMeta):
         if __name not in self.__fields__:
             raise ValueError(f'"{self.__class__.__name__}" object has no field "{__name}"')
 
+        from .utils.type_checker import array_item_type
+
         field_info = self.__fields__[__name]
         if isinstance(field_info.info, LLMOutputInfo):
             __value = self._prepare_field_value(__value, field_info.type_)
@@ -101,6 +101,14 @@ class BaseLLMResponse(metaclass=LLMMeta):
             if not all(isinstance(v, item_type) for v in __value):
                 raise LLMOutputFieldWrongType(f'"{self.__class__.__name__}" field "{__name}" must be a list of type {field_info.type_}')
 
+        elif isinstance(field_info.info, LLMArrayElementOutputInfo):
+            __value = self._prepare_field_value(__value, field_info.type_)
+
+            if __value is None and field_info.info.required:
+                raise TypeError(f'"{self.__class__.__name__}" field "{__name}" is required')
+            if not isinstance(__value, field_info.type_):
+                raise LLMOutputFieldWrongType(f'"{self.__class__.__name__}" field "{__name}" must be of type {field_info.type_}')
+
         return __value
 
     def _prepare_and_validate_dict(self, __values: dict[str, Any]) -> dict[str, Any]:
@@ -125,7 +133,19 @@ class BaseLLMResponse(metaclass=LLMMeta):
                 else:
                     __values[field.key] = []
 
+            elif isinstance(field.info, LLMArrayElementOutputInfo):
+                if field.info.required:
+                    raise ValueError(f'"{self.__class__.__name__}" field "{field.key}" is required')
+                else:
+                    __values[field.key] = field.info.default
+
         return __values
+
+
+class BaseLLMResponse(_InternalBaseLLMResponse, metaclass=LLMBaseMeta):
+    if TYPE_CHECKING:
+        # populated by the metaclass (ClassPlaceholder used to prevent showing up as type suggestion)
+        __raw_completion__: str = ClassPlaceholder(init=False, value="")
 
     def _set_raw_completion(self, completion: str):
         self.__raw_completion__ = completion
@@ -137,3 +157,21 @@ class BaseLLMResponse(metaclass=LLMMeta):
     @classmethod
     def parse_response(cls: type[_Self], response: str) -> _Self:
         return Parser(cls).parse(response)
+
+
+# -
+
+
+class BaseLLMArrayElement(_InternalBaseLLMResponse, metaclass=LLMArrayElementMeta):
+    if TYPE_CHECKING:
+        # populated by the metaclass (ClassPlaceholder used to prevent showing up as type suggestion)
+        __fields__: ClassVar[dict[str, LLMFieldInfo]] = ClassPlaceholder(init=False, value={})
+        __signature__: ClassVar["Signature"] = ClassPlaceholder(init=False)
+
+    # - Parsing
+
+    _Self = TypeVar("_Self", bound="BaseLLMArrayElement")  # backward compatibility for pre-Python 3.12
+
+    # @classmethod
+    # def parse_response(cls: type[_Self], response: str) -> _Self:
+    #     return Parser(cls).parse(response)

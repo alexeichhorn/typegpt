@@ -6,8 +6,8 @@ sys.path.insert(0, myPath + "/../")
 
 import pytest
 
-from typegpt import BaseLLMResponse, LLMArrayOutput, LLMOutput
-from typegpt.fields import ExamplePosition, LLMArrayOutputInfo
+from typegpt import BaseLLMArrayElement, BaseLLMResponse, LLMArrayElementOutput, LLMArrayOutput, LLMOutput
+from typegpt.fields import ExamplePosition, LLMArrayElementOutputInfo, LLMArrayOutputInfo
 from typegpt.prompt_builder import OutputPromptFactory
 
 
@@ -96,6 +96,50 @@ MIN MAX INTEGER 1: <Put the first integer here>
 MIN MAX INTEGER 2: <Put the second integer here>
 ...
 MIN MAX INTEGER 5: <Put the 5th integer here>
+\"""
+""".strip()
+
+        assert prompt == expected_prompt
+
+    # -
+
+    class SubtypeTestOutput(BaseLLMResponse):
+        class Item(BaseLLMArrayElement):
+            subtitle: str
+            description: str = LLMArrayElementOutput(lambda pos: f"Put the {pos.ordinal} item description here")
+            abstract: str = LLMArrayElementOutput(lambda _: "Some instruction", default="default abstract")
+
+        class DirectItem(BaseLLMResponse):
+            title: str
+
+        title: str
+        strings: list[str]
+        items: list[Item]
+        subitem: DirectItem
+        optional_subitem: DirectItem | None = None
+
+    def test_subtype_output_fields(self):
+        fields = list(self.SubtypeTestOutput.__fields__.values())
+        prompt = OutputPromptFactory(fields).generate()
+        expected_prompt = f"""
+Always return the answer in the following format:
+\"""
+TITLE: <Put the title here>
+STRING 1: <Put the first string here>
+STRING 2: <Put the second string here>
+...
+
+ITEM SUBTITLE 1: <Put the first subtitle here>
+ITEM DESCRIPTION 1: <Put the first item description here>
+ITEM ABSTRACT 1: <Some instruction>
+ITEM SUBTITLE 2: <Put the second subtitle here>
+ITEM DESCRIPTION 2: <Put the second item description here>
+ITEM ABSTRACT 2: <Some instruction>
+...
+
+SUBITEM TITLE: <Put the title here>
+
+OPTIONAL SUBITEM TITLE: <Put the title here>
 \"""
 """.strip()
 

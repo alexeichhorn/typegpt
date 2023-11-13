@@ -1,28 +1,44 @@
+from __future__ import annotations
+
+import inspect
 from abc import ABCMeta
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import inflect
-from typing_extensions import dataclass_transform
+from typing_extensions import dataclass_transform, override
 
-from .fields import ClassPlaceholder, ExamplePosition, LLMArrayOutput, LLMArrayOutputInfo, LLMFieldInfo, LLMOutput, LLMOutputInfo
+from .fields import (
+    ClassPlaceholder,
+    ExamplePosition,
+    LLMArrayElementOutput,
+    LLMArrayElementOutputInfo,
+    LLMArrayOutput,
+    LLMArrayOutputInfo,
+    LLMFieldInfo,
+    LLMOutput,
+    LLMOutputInfo,
+)
 from .helper import ClassAttribute, generate_model_signature
 from .utils.internal_types import _NoDefault
-from .utils.type_checker import is_array, is_optional, is_supported_output_type
 
 inflect_engine = inflect.engine()
 
 
-@dataclass_transform(kw_only_default=True, field_specifiers=(LLMArrayOutput, LLMOutput, ClassPlaceholder))
 class LLMMeta(ABCMeta):
+    @staticmethod
+    def _is_array_element() -> bool:
+        return False
+
     def __new__(mcls: type, name: str, bases: tuple[type, ...], namespace: dict[str, Any], **kwargs: Any) -> "LLMMeta":
         cls = super().__new__(mcls, name, bases, namespace, **kwargs)
-        # print(name)
-        # print(namespace)
+
         annotations: dict[str, type] = namespace.get("__annotations__", {})
 
         fields: dict[str, LLMFieldInfo] = {}
 
         for field_name, field_type in annotations.items():
+            from .utils.type_checker import is_array, is_optional, is_supported_output_type
+
             namespace_field = namespace.get(field_name, _NoDefault)
             is_array_type = is_array(field_type)
 
@@ -32,6 +48,10 @@ class LLMMeta(ABCMeta):
             if isinstance(namespace_field, LLMOutputInfo):
                 if is_array_type:
                     raise TypeError(f"Field {field_name} is not an array, but has `LLMArrayOutput` annotation. Use `LLMOutput` instead")
+                if cls._is_array_element():
+                    raise TypeError(
+                        f"Field {field_name} is defined as `LLMOutput` in a class that subclasses `BaseLLMArrayElement`. Use `LLMArrayElementOutput` instead"
+                    )
                 displayed_name = LLMMeta.generate_field_name(field_name)
                 namespace[field_name] = namespace_field.default
                 fields[field_name] = LLMFieldInfo(name=displayed_name, key=field_name, type_=field_type, info=namespace_field)
@@ -40,6 +60,14 @@ class LLMMeta(ABCMeta):
                     raise TypeError(f"Field {field_name} is an array, but has normal `LLMOutput` annotation. Use `LLMArrayOutput` instead")
                 displayed_name = LLMMeta.generate_field_name(field_name, is_array=True)
                 namespace[field_name] = []
+                fields[field_name] = LLMFieldInfo(name=displayed_name, key=field_name, type_=field_type, info=namespace_field)
+            elif isinstance(namespace_field, LLMArrayElementOutputInfo):
+                if not cls._is_array_element():
+                    raise TypeError(
+                        f"Field {field_name} is defined as `LLMArrayElementOutput` in a class that does not subclass `BaseLLMArrayElement`"
+                    )
+                displayed_name = LLMMeta.generate_field_name(field_name)
+                namespace[field_name] = namespace_field.default
                 fields[field_name] = LLMFieldInfo(name=displayed_name, key=field_name, type_=field_type, info=namespace_field)
             else:
                 if is_array_type:
@@ -56,12 +84,20 @@ class LLMMeta(ABCMeta):
                     if is_optional(field_type) and default is _NoDefault:
                         default = None
 
-                    field = LLMOutputInfo(
-                        instruction=LLMMeta.generate_default_instruction(displayed_name, field_type),
-                        default=default,
-                        required=(default is _NoDefault),
-                        multiline=False,
-                    )
+                    if cls._is_array_element():
+                        field = LLMArrayElementOutputInfo(
+                            instruction=LLMMeta.generate_default_array_element_instruction(displayed_name),
+                            default=default,
+                            required=(default is _NoDefault),
+                            multiline=False,
+                        )
+                    else:
+                        field = LLMOutputInfo(
+                            instruction=LLMMeta.generate_default_instruction(displayed_name, field_type),
+                            default=default,
+                            required=(default is _NoDefault),
+                            multiline=False,
+                        )
                 fields[field_name] = LLMFieldInfo(name=displayed_name, key=field_name, type_=field_type, info=field)
 
             fields[field_name] = LLMMeta._verify_and_fix_field_info(fields[field_name])
@@ -81,6 +117,8 @@ class LLMMeta(ABCMeta):
                 "_prepare_field_value",
                 "_set_raw_completion",
             ):
+                continue
+            if inspect.isclass(value):  # other classes defined in the same namespace is allowed
                 continue
             if not var_name in fields:
                 raise ValueError(f"Field {var_name} has no type annotation")
@@ -104,6 +142,10 @@ class LLMMeta(ABCMeta):
         return f"Put the {name.lower()} here"
 
     @staticmethod
+    def generate_default_array_element_instruction(name: str) -> Callable[[ExamplePosition], str]:
+        return lambda position: f"Put the {position.ordinal} {name.lower()} here"
+
+    @staticmethod
     def generate_default_array_instruction(name: str) -> Callable[[ExamplePosition], str]:
         # singular_word = inflect_engine.singular_noun(name.lower())
         singular_word = name.lower()
@@ -111,38 +153,11 @@ class LLMMeta(ABCMeta):
 
     # - Verification
 
-    # def _prepare_and_validate_field(self, __name: str, __value: Any) -> Any:
-    #     if __name not in self.__fields__:
-    #         raise ValueError(f'"{self.__class__.__name__}" object has no field "{__name}"')
-
-    #     field_info = self.__fields__[__name]
-    #     if isinstance(field_info.info, LLMOutputInfo):
-    #         __value = self._prepare_field_value(__value, field_info.type_)
-
-    #         if __value is None and field_info.info.required:
-    #             raise TypeError(f'"{self.__class__.__name__}" field "{__name}" is required')
-    #         if not isinstance(__value, field_info.type_):
-    #             raise TypeError(f'"{self.__class__.__name__}" field "{__name}" must be of type {field_info.type_}')
-
-    #     elif isinstance(field_info.info, LLMArrayOutputInfo):
-    #         item_type = array_item_type(field_info.type_)
-
-    #         if not isinstance(__value, list):
-    #             raise TypeError(f'"{self.__class__.__name__}" field "{__name}" must be a list')
-    #         if field_info.info.min_count is not None and len(__value) < field_info.info.min_count:
-    #             raise ValueError(f'"{self.__class__.__name__}" field "{__name}" must have at least {field_info.info.min_count} items')
-    #         if field_info.info.max_count is not None and len(__value) > field_info.info.max_count:
-    #             raise ValueError(f'"{self.__class__.__name__}" field "{__name}" must have at most {field_info.info.max_count} items')
-
-    #         __value = [self._prepare_field_value(v, item_type) for v in __value]
-    #         if not all(isinstance(v, item_type) for v in __value):
-    #             raise TypeError(f'"{self.__class__.__name__}" field "{__name}" must be a list of type {field_info.type_}')
-
-    #     return __value
-
     @staticmethod
     def _verify_and_fix_field_info(field: LLMFieldInfo) -> LLMFieldInfo:
         """@throws ValueError, TypeError"""
+
+        from .utils.type_checker import is_optional
 
         # TODO: check types and more
 
@@ -164,3 +179,19 @@ class LLMMeta(ABCMeta):
         # TODO: arrays
 
         return field
+
+
+# -
+
+
+@dataclass_transform(kw_only_default=True, field_specifiers=(LLMArrayOutput, LLMOutput, ClassPlaceholder))
+class LLMBaseMeta(LLMMeta):
+    ...
+
+
+@dataclass_transform(kw_only_default=True, field_specifiers=(LLMArrayOutput, LLMArrayElementOutput, ClassPlaceholder))
+class LLMArrayElementMeta(LLMMeta):
+    @override
+    @staticmethod
+    def _is_array_element() -> bool:
+        return True

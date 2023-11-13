@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Callable, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar
 
 from .utils.internal_types import _NoDefault, _NoDefaultType
-from .utils.type_checker import SupportedBaseTypes, array_item_type
 
 T = TypeVar("T")
 
@@ -35,13 +36,20 @@ class LLMArrayOutputInfo(Generic[T]):
     multiline: bool
 
 
-# LLMInfo = LLMOutputInfo | LLMArrayOutputInfo
+@dataclass
+class LLMArrayElementOutputInfo(Generic[T]):
+    instruction: Callable[[ExamplePosition], str]
+    default: T | _NoDefaultType
+    required: bool
+    multiline: bool
+
+
 @dataclass
 class LLMFieldInfo(Generic[T]):
     key: str
     name: str
     type_: type[T]
-    info: LLMOutputInfo[T] | LLMArrayOutputInfo[T]
+    info: LLMOutputInfo[T] | LLMArrayOutputInfo[T] | LLMArrayElementOutputInfo[T]
 
 
 def LLMOutput(
@@ -69,5 +77,17 @@ def LLMArrayOutput(
     return LLMArrayOutputInfo(instruction=instruction, min_count=min_count, max_count=max_count, multiline=multiline)
 
 
+def LLMArrayElementOutput(
+    instruction: Callable[[ExamplePosition], str],
+    default: SupportedBaseTypes | None | _NoDefaultType = _NoDefault,
+    multiline: bool = False,
+) -> Any:
+    return LLMArrayElementOutputInfo(instruction=instruction, default=default, required=(default is _NoDefault), multiline=multiline)
+
+
 def ClassPlaceholder(init: bool, value: Any = None) -> Any:
     return value
+
+
+if TYPE_CHECKING:
+    from .utils.type_checker import SupportedBaseTypes, array_item_type
