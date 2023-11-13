@@ -8,7 +8,7 @@ import logging
 
 import pytest
 
-from typegpt import BaseLLMResponse, LLMArrayOutput, LLMOutput, PromptTemplate
+from typegpt import BaseLLMArrayElement, BaseLLMResponse, LLMArrayElementOutput, LLMArrayOutput, LLMOutput, PromptTemplate
 from typegpt.exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
 from typegpt.fields import ExamplePosition, LLMArrayOutputInfo
 from typegpt.utils.internal_types import _NoDefault
@@ -263,5 +263,68 @@ ACTOR: Some actor
 
         with pytest.raises(LLMOutputFieldInvalidLength):
             DynamicTestPrompt(2, False).Output.parse_response(completion_output_1)
+
+    # endregion
+    # region - 7
+
+    class SubtypeTestOutput(BaseLLMResponse):
+        class Item(BaseLLMArrayElement):
+            subtitle: str
+            description: str = LLMArrayElementOutput(lambda pos: f"Put the {pos.ordinal} item description here")
+            abstract: str = LLMArrayElementOutput(lambda _: "Some instruction", default="default abstract")
+
+        class DirectItem(BaseLLMResponse):
+            title: str
+
+        title: str
+        strings: list[str]
+        items: list[Item]
+        subitem: DirectItem
+        optional_subitem: DirectItem | None = None
+
+    def test_parse_subtype_output(self):
+        completion_output_1 = """
+TITLE: Hello world
+STRING 1: s1
+STRING 2: s2
+STRING 3: s3
+ITEM SUBTITLE 1: subtitle one
+ITEM DESCRIPTION 1: description one
+ITEM ABSTRACT 1: Just an abstract...
+ITEM SUBTITLE 2: subtitle two
+ITEM DESCRIPTION 2: Description TWO
+ITEM ABSTRACT 2: More abstract...
+
+SUBITEM TITLE: A subitem title (!!)
+
+OPTIONAL SUBITEM TITLE: Optional subitem title (but filled)
+""".strip()
+
+        parsed_output = self.SubtypeTestOutput.parse_response(completion_output_1)
+        assert parsed_output.title == "Hello world"
+        assert parsed_output.strings == ["s1", "s2", "s3"]
+        assert len(parsed_output.items) == 2
+        assert parsed_output.items[0].subtitle == "subtitle one"
+        assert parsed_output.items[0].description == "description one"
+        assert parsed_output.items[0].abstract == "Just an abstract..."
+        assert parsed_output.items[1].subtitle == "subtitle two"
+        assert parsed_output.items[1].description == "Description TWO"
+        assert parsed_output.items[1].abstract == "More abstract..."
+        assert parsed_output.subitem.title == "A subitem title (!!)"
+        assert parsed_output.optional_subitem is not None
+        assert parsed_output.optional_subitem.title == "Optional subitem title (but filled)"
+
+        completion_output_2 = """
+TITLE: Hello world
+
+SUBITEM TITLE: A subitem title (!!)
+""".strip()
+
+        parsed_output_2 = self.SubtypeTestOutput.parse_response(completion_output_2)
+        assert parsed_output_2.title == "Hello world"
+        assert parsed_output_2.strings == []
+        assert len(parsed_output_2.items) == 0
+        assert parsed_output_2.subitem.title == "A subitem title (!!)"
+        assert parsed_output_2.optional_subitem is None
 
     # endregion

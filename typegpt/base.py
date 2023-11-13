@@ -175,10 +175,13 @@ class BaseLLMArrayElement(_InternalBaseLLMResponse, metaclass=LLMArrayElementMet
         __fields__: ClassVar[dict[str, LLMFieldInfo]] = ClassPlaceholder(init=False, value={})
         __signature__: ClassVar["Signature"] = ClassPlaceholder(init=False)
 
+    def _set_raw_completion(self, completion: str):
+        pass  # ignored for array elements
+
     # - Parsing
 
     _Self = TypeVar("_Self", bound="BaseLLMArrayElement")  # backward compatibility for pre-Python 3.12
 
-    # @classmethod
-    # def parse_response(cls: type[_Self], response: str) -> _Self:
-    #     return Parser(cls).parse(response)
+    @classmethod
+    def parse_response(cls: type[_Self], response: str) -> _Self:
+        return Parser(cls).parse(response)
