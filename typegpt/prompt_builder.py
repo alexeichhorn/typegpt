@@ -16,7 +16,7 @@ class OutputPromptFactory:
         if element_type := if_array_element_list_type(field.type_):
             subfields = list(element_type.__fields__.values())
             subprompt_factory = OutputPromptFactory(subfields, name_prefixes=self.name_prefixes + [field.name])
-            examples = [subprompt_factory._generate_schema(offset=i) for i in range(max_count)]
+            examples = [subprompt_factory._generate_schema(offset=i + 1) for i in range(max_count)]
         else:
             field_name = " ".join(self.name_prefixes + [field.name])
             examples = [f"{field_name} {i+1}: <{info.instruction(ExamplePosition(i+1))}>" for i in range(max_count)]
@@ -31,19 +31,34 @@ class OutputPromptFactory:
 
         for field in self.fields:
             field_name = " ".join(self.name_prefixes + [field.name])
+            if offset > 0:
+                field_name += f" {offset}"
 
             if isinstance(field.info, LLMOutputInfo):
                 if field_type := if_response_type(field.type_):
                     subfields = list(field_type.__fields__.values())
-                    prompt += OutputPromptFactory(subfields, name_prefixes=self.name_prefixes + [field.name])._generate_schema() + "\n"
+                    prompt = prompt.rstrip() + "\n\n"
+                    prompt += (
+                        OutputPromptFactory(subfields, name_prefixes=self.name_prefixes + [field.name])._generate_schema(offset=offset)
+                        + "\n"
+                    )
 
                 else:
                     field_prompt = f"{field_name}: <{field.info.instruction}>"
                     prompt += field_prompt
 
             elif isinstance(field.info, LLMArrayElementOutputInfo):
-                field_prompt = f"{field_name} {offset+1}: <{field.info.instruction(ExamplePosition(offset+1))}>"
-                prompt += field_prompt
+                if field_type := if_response_type(field.type_):
+                    subfields = list(field_type.__fields__.values())
+                    prompt = prompt.rstrip() + "\n\n"
+                    prompt += (
+                        OutputPromptFactory(subfields, name_prefixes=self.name_prefixes + [field.name])._generate_schema(offset=offset)
+                        + "\n"
+                    )
+
+                else:
+                    field_prompt = f"{field_name}: <{field.info.instruction(ExamplePosition(offset))}>"
+                    prompt += field_prompt
 
             elif isinstance(field.info, LLMArrayOutputInfo):
                 prompt += self._generate_array(field, field.info)

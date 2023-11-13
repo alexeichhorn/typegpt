@@ -144,3 +144,59 @@ OPTIONAL SUBITEM TITLE: <Put the title here>
 """.strip()
 
         assert prompt == expected_prompt
+
+    class UltraSubtypeTestOutput(BaseLLMResponse):
+        class Item(BaseLLMArrayElement):
+            class InnerItem(BaseLLMResponse):
+                title: str
+                description: str
+
+            class InnerElement(BaseLLMArrayElement):
+                title: str
+
+            subtitle: str
+            description: str
+            abstract: str
+            inner_item: InnerItem
+
+        class DirectItem(BaseLLMResponse):
+            class InnerDirectElement(BaseLLMArrayElement):
+                subtitle: str
+
+            title: str
+            x: list[InnerDirectElement]
+
+        title: str
+        subitem: DirectItem
+        items: list[Item]
+
+    def test_ultra_subtype_output_fields(self):
+        fields = list(self.UltraSubtypeTestOutput.__fields__.values())
+        prompt = OutputPromptFactory(fields).generate()
+        expected_prompt = f"""
+Always return the answer in the following format:
+\"""
+TITLE: <Put the title here>
+
+SUBITEM TITLE: <Put the title here>
+SUBITEM X SUBTITLE 1: <Put the first subtitle here>
+SUBITEM X SUBTITLE 2: <Put the second subtitle here>
+...
+
+ITEM SUBTITLE 1: <Put the first subtitle here>
+ITEM DESCRIPTION 1: <Put the first description here>
+ITEM ABSTRACT 1: <Put the first abstract here>
+
+ITEM INNER ITEM TITLE 1: <Put the title here>
+ITEM INNER ITEM DESCRIPTION 1: <Put the description here>
+ITEM SUBTITLE 2: <Put the second subtitle here>
+ITEM DESCRIPTION 2: <Put the second description here>
+ITEM ABSTRACT 2: <Put the second abstract here>
+
+ITEM INNER ITEM TITLE 2: <Put the title here>
+ITEM INNER ITEM DESCRIPTION 2: <Put the description here>
+...
+\"""
+""".strip()
+
+        assert prompt == expected_prompt
