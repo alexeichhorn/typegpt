@@ -22,6 +22,9 @@ class TestFields:
         description: str | None
         tags: list[str]
         cool_integer: int
+        optional_integer: int | None
+        filled_optional_integer: int | None
+        optional_bool: bool | None
         connected_floats: list[float]
         mice: list[str]
         sample_with_default: str = "some default value"
@@ -33,6 +36,8 @@ DESCRIPTION: Some description
 TAG 1: first tag
 some irrelevant stuff that should be ignored
 COOL INTEGER: 33
+FILLED OPTIONAL INTEGER: 44
+OPTIONAL BOOL: yes
 blabla
 CONNECTED FLOAT 1: 1.0
 CONNECTED FLOAT 2: 2.0
@@ -44,6 +49,9 @@ CONNECTED FLOAT 3: 3.14
         assert parsed_output.description == "Some description"
         assert parsed_output.tags == ["first tag"]
         assert parsed_output.cool_integer == 33
+        assert parsed_output.optional_integer is None
+        assert parsed_output.filled_optional_integer == 44
+        assert parsed_output.optional_bool == True
         assert parsed_output.connected_floats == [1.0, 2.0, 3.14]
         assert parsed_output.mice == []
         assert parsed_output.sample_with_default == "some default value"

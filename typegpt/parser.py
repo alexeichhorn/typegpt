@@ -33,14 +33,14 @@ class Parser(Generic[_Output]):
             exclusion_cases_regex = f"(?!{exclusion_cases_regex})"
 
         if isinstance(field.info, LLMOutputInfo):
-            return rf"{field.name}: *\n?(?P<content>({exclusion_cases_regex}[\s\S])+)"
+            return rf"(?:^|\n){field.name}: *\n?(?P<content>({exclusion_cases_regex}[\s\S])+)"
         elif isinstance(field.info, LLMArrayOutputInfo):
             if max_count := field.info.max_count:
                 max_decimal_places = len(str(max_count))
                 count_regex = f"\\d{{1,{max_decimal_places}}}"
             else:
                 count_regex = "\\d{1,3}"
-            return rf"{field.name} {count_regex}: ?(?P<content>({exclusion_cases_regex}[\s\S])+)"
+            return rf"(?:^|\n){field.name} {count_regex}: ?(?P<content>({exclusion_cases_regex}[\s\S])+)"
         else:
             raise ValueError(f"Invalid field info type: {field.info}")
 

@@ -40,6 +40,13 @@ class _InternalBaseLLMResponse:
 
     def _prepare_field_value(self, value: Any, _type: type) -> Any:
         """Converts single values from string to their type, otherwise leaves as is"""
+
+        from .utils.type_checker import if_optional
+
+        # unwrap optional type
+        if optional_type := if_optional(_type):
+            _type = optional_type
+
         if _type == str:
             return value
 
