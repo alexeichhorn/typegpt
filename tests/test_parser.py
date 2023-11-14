@@ -328,3 +328,79 @@ SUBITEM TITLE: A subitem title (!!)
         assert parsed_output_2.optional_subitem is None
 
     # endregion
+    # region - 8
+    class UltraSubtypeTestOutput(BaseLLMResponse):
+        class Item(BaseLLMArrayElement):
+            class InnerItem(BaseLLMResponse):
+                title: str
+                description: str
+
+            class InnerElement(BaseLLMArrayElement):
+                value: float
+                is_accurate: bool
+
+            subtitle: str
+            description: str
+            abstract: str = LLMArrayElementOutput(lambda _: "...", multiline=True)
+            inner_item: InnerItem
+            # inner_elements: list[InnerElement] = LLMArrayOutput(2, instruction=lambda _: "...")
+
+        class DirectItem(BaseLLMResponse):
+            class InnerDirectElement(BaseLLMArrayElement):
+                subtitle: str
+
+            title: str
+            x: list[InnerDirectElement]
+
+        title: str
+        subitem: DirectItem
+        items: list[Item]
+
+    def test_parse_ultra_subtype_output(self):
+        completion_output = """
+TITLE: Main head title
+
+SUBITEM TITLE: subtitle
+disregarded!
+SUBITEM X SUBTITLE 1: sub1
+? also disregarded ?
+SUBITEM X SUBTITLE 2: sub2
+
+ITEM SUBTITLE 1: First item subtitle
+ITEM DESCRIPTION 1: first descr.
+ITEM ABSTRACT 1: Jsut some random abstract
+ITEM INNER ITEM TITLE 1: INNER TITLE 1
+ITEM INNER ITEM DESCRIPTION 1: DESCription 1
+ITEM INNER ELEMENT VALUE 1: 1.0
+ITEM INNER ELEMENT IS ACCURATE 1: yes
+ITEM INNER ELEMENT VALUE 2: 3.14
+ITEM INNER ELEMENT IS ACCURATE 2: False
+
+ITEM SUBTITLE 2: Second item subtitle
+ITEM DESCRIPTION 2: second description
+ITEM ABSTRACT 2: Another abstract but this time
+with multiple lines
+ITEM INNER ITEM TITLE 2: tt2
+ITEM INNER ITEM DESCRIPTION 2: dd2
+"""
+        parsed_output = self.UltraSubtypeTestOutput.parse_response(completion_output)
+        assert parsed_output.title == "Main head title"
+        assert parsed_output.subitem.title == "subtitle"
+        assert len(parsed_output.subitem.x) == 2
+        assert parsed_output.subitem.x[0].subtitle == "sub1"
+        assert parsed_output.subitem.x[1].subtitle == "sub2"
+
+        assert len(parsed_output.items) == 2
+        assert parsed_output.items[0].subtitle == "First item subtitle"
+        assert parsed_output.items[0].description == "first descr."
+        assert parsed_output.items[0].abstract == "Jsut some random abstract"
+        assert parsed_output.items[0].inner_item.title == "INNER TITLE 1"
+        assert parsed_output.items[0].inner_item.description == "DESCription 1"
+
+        assert parsed_output.items[1].subtitle == "Second item subtitle"
+        assert parsed_output.items[1].description == "second description"
+        assert parsed_output.items[1].abstract == "Another abstract but this time\nwith multiple lines"
+        assert parsed_output.items[1].inner_item.title == "tt2"
+        assert parsed_output.items[1].inner_item.description == "dd2"
+
+    # endregion

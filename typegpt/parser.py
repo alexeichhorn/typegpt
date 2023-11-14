@@ -27,7 +27,7 @@ class Parser(Generic[_Output]):
             excluded_lookahead.append("\n")
 
         # also add current field if it's an array
-        if isinstance(field.info, LLMArrayOutputInfo):
+        if isinstance(field.info, LLMArrayOutputInfo) or is_response_type(field.type_):
             excluded_lookahead.append("\n" + field.name)
 
         exclusion_cases_regex = "|".join(excluded_lookahead)
@@ -86,7 +86,7 @@ class Parser(Generic[_Output]):
                         field_values[field.key] = match.group("content").strip()
                     else:
                         if field.info.required:
-                            raise LLMOutputFieldMissing(f'Field "{field.name}" is missing')
+                            raise LLMOutputFieldMissing(f'Field "{field.name}" is missing in {self.output_type.__name__}')
 
             elif isinstance(field.info, LLMArrayOutputInfo):
                 if field_type := if_array_element_list_type(field.type_):
