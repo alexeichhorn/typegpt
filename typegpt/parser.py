@@ -83,7 +83,7 @@ class Parser(Generic[_Output]):
                 else:
                     match = re.search(pattern, response)
                     if match:
-                        field_values[field.key] = match.group("content").strip()
+                        field_values[field.key] = symmetric_strip(match.group("content").strip(), ["'", '"', "`"]).strip()
                     else:
                         if field.info.required:
                             raise LLMOutputFieldMissing(f'Field "{field.name}" is missing in {self.output_type.__name__}')
@@ -111,6 +111,7 @@ class Parser(Generic[_Output]):
                 else:
                     matches = re.finditer(pattern, response)
                     items: list[str] = [m.group("content").strip() for m in matches]
+                    items = [symmetric_strip(item, ["'", '"', "`"]).strip() for item in items]
                     items = [i for i in items if i]
                     field_values[field.key] = items
 

@@ -32,7 +32,7 @@ class TestFields:
     def test_parse_simple_output(self):
         completion_output = """
 TITLE: Some title
-DESCRIPTION: Some description
+DESCRIPTION: "Some description"
 TAG 1: first tag
 some irrelevant stuff that should be ignored
 COOL INTEGER: 33
@@ -63,7 +63,7 @@ CONNECTED FLOAT 3: 3.14
 TITLE: 3.58
 COOL INTEGER: -55
 MOUSE 1: Mickey
-MOUSE 2: Minnie
+MOUSE 2: 'Minnie'
 SAMPLE WITH DEFAULT: some other value
 \"""
 """
