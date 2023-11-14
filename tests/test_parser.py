@@ -340,7 +340,7 @@ SUBITEM TITLE: A subitem title (!!)
                 is_accurate: bool
 
             subtitle: str
-            description: str
+            description: str | None = LLMArrayElementOutput(lambda pos: f"Put the {pos.ordinal} item description here")
             abstract: str = LLMArrayElementOutput(lambda _: "...", multiline=True)
             inner_item: InnerItem
             # inner_elements: list[InnerElement] = LLMArrayOutput(2, instruction=lambda _: "...")
@@ -377,7 +377,6 @@ ITEM INNER ELEMENT VALUE 2: 3.14
 ITEM INNER ELEMENT IS ACCURATE 2: False
 
 ITEM SUBTITLE 2: Second item subtitle
-ITEM DESCRIPTION 2: second description
 ITEM ABSTRACT 2: Another abstract but this time
 with multiple lines
 ITEM INNER ITEM TITLE 2: tt2
@@ -398,7 +397,7 @@ ITEM INNER ITEM DESCRIPTION 2: dd2
         assert parsed_output.items[0].inner_item.description == "DESCription 1"
 
         assert parsed_output.items[1].subtitle == "Second item subtitle"
-        assert parsed_output.items[1].description == "second description"
+        assert parsed_output.items[1].description is None
         assert parsed_output.items[1].abstract == "Another abstract but this time\nwith multiple lines"
         assert parsed_output.items[1].inner_item.title == "tt2"
         assert parsed_output.items[1].inner_item.description == "dd2"

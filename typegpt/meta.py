@@ -161,7 +161,7 @@ class LLMMeta(ABCMeta):
 
         # TODO: check types and more
 
-        if isinstance(field.info, LLMOutputInfo):
+        if isinstance(field.info, LLMOutputInfo) or isinstance(field.info, LLMArrayElementOutputInfo):
             if field.info.required and field.info.default is not _NoDefault:
                 raise ValueError(f'"{field.key}" is required but has default value')
 
