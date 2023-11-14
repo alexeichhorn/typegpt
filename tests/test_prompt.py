@@ -152,12 +152,13 @@ OPTIONAL SUBITEM TITLE: <Put the title here>
                 description: str
 
             class InnerElement(BaseLLMArrayElement):
-                title: str
+                value: int
 
             subtitle: str
             description: str
             abstract: str
             inner_item: InnerItem
+            inner_elements: list[InnerElement] = LLMArrayOutput(2, instruction=lambda _: "...")
 
         class DirectItem(BaseLLMResponse):
             class InnerDirectElement(BaseLLMArrayElement):
@@ -189,12 +190,18 @@ ITEM ABSTRACT 1: <Put the first abstract here>
 
 ITEM INNER ITEM TITLE 1: <Put the title here>
 ITEM INNER ITEM DESCRIPTION 1: <Put the description here>
+
+ITEM INNER ELEMENT VALUE 1: <Put the first value here>
+ITEM INNER ELEMENT VALUE 2: <Put the second value here>
 ITEM SUBTITLE 2: <Put the second subtitle here>
 ITEM DESCRIPTION 2: <Put the second description here>
 ITEM ABSTRACT 2: <Put the second abstract here>
 
 ITEM INNER ITEM TITLE 2: <Put the title here>
 ITEM INNER ITEM DESCRIPTION 2: <Put the description here>
+
+ITEM INNER ELEMENT VALUE 1: <Put the first value here>
+ITEM INNER ELEMENT VALUE 2: <Put the second value here>
 ...
 \"""
 """.strip()
