@@ -48,7 +48,7 @@ class Parser(Generic[_Output]):
                 count_regex = "\\d{1,3}"
 
             if field_type := if_array_element_list_type(field.type_):
-                return rf"(?:^|\n){field.name} (?P<subfield_name>((?!:|\n)[\S ])+) (?P<i>{count_regex}): ?(?P<content>({exclusion_cases_regex}[\s\S])+)"
+                return rf"(?:^|\n){field.name} (?P<i>{count_regex}) (?P<subfield_name>((?!:|\n)[\S ])+): ?(?P<content>({exclusion_cases_regex}[\s\S])+)"
             else:
                 return rf"(?:^|\n){field.name} {count_regex}: ?(?P<content>({exclusion_cases_regex}[\s\S])+)"
 

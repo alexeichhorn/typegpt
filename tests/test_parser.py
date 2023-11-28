@@ -288,12 +288,12 @@ TITLE: Hello world
 STRING 1: s1
 STRING 2: s2
 STRING 3: s3
-ITEM SUBTITLE 1: subtitle one
-ITEM DESCRIPTION 1: description one
-ITEM ABSTRACT 1: Just an abstract...
-ITEM SUBTITLE 2: subtitle two
-ITEM DESCRIPTION 2: Description TWO
-ITEM ABSTRACT 2: More abstract...
+ITEM 1 SUBTITLE: subtitle one
+ITEM 1 DESCRIPTION: description one
+ITEM 1 ABSTRACT: Just an abstract...
+ITEM 2 SUBTITLE: subtitle two
+ITEM 2 DESCRIPTION: Description TWO
+ITEM 2 ABSTRACT: More abstract...
 
 SUBITEM TITLE: A subitem title (!!)
 
@@ -343,7 +343,8 @@ SUBITEM TITLE: A subitem title (!!)
             description: str | None = LLMArrayElementOutput(lambda pos: f"Put the {pos.ordinal} item description here")
             abstract: str = LLMArrayElementOutput(lambda _: "...", multiline=True)
             inner_item: InnerItem
-            # inner_elements: list[InnerElement] = LLMArrayOutput(2, instruction=lambda _: "...")
+            inner_elements: list[InnerElement] = LLMArrayOutput(2, instruction=lambda _: "...")
+            multiline_text: list[str] = LLMArrayOutput((0, None), lambda _: "...", multiline=True)
 
         class DirectItem(BaseLLMResponse):
             class InnerDirectElement(BaseLLMArrayElement):
@@ -362,25 +363,38 @@ TITLE: Main head title
 
 SUBITEM TITLE: subtitle
 disregarded!
-SUBITEM X SUBTITLE 1: sub1
+SUBITEM X 1 SUBTITLE: sub1
 ? also disregarded ?
-SUBITEM X SUBTITLE 2: sub2
+SUBITEM X 2 SUBTITLE: sub2
 
-ITEM SUBTITLE 1: First item subtitle
-ITEM DESCRIPTION 1: first descr.
-ITEM ABSTRACT 1: Jsut some random abstract
-ITEM INNER ITEM TITLE 1: INNER TITLE 1
-ITEM INNER ITEM DESCRIPTION 1: DESCription 1
-ITEM INNER ELEMENT VALUE 1: 1.0
-ITEM INNER ELEMENT IS ACCURATE 1: yes
-ITEM INNER ELEMENT VALUE 2: 3.14
-ITEM INNER ELEMENT IS ACCURATE 2: False
+ITEM 1 SUBTITLE: First item subtitle
+ITEM 1 DESCRIPTION: first descr.
+ITEM 1 ABSTRACT: Jsut some random abstract
+ITEM 1 INNER ITEM TITLE: INNER TITLE 1
+ITEM 1 INNER ITEM DESCRIPTION: DESCription 1
+ITEM 1 INNER ELEMENT 1 VALUE: 1.0
+ITEM 1 INNER ELEMENT 1 IS ACCURATE: yes
+ITEM 1 INNER ELEMENT 2 VALUE: 3.14
+ITEM 1 INNER ELEMENT 2 IS ACCURATE: False
+ITEM 1 MULTILINE TEXT 1: line 1
+line 2
+line 3
+ITEM 1 MULTILINE TEXT 2: line 4
+line 5
+line 6
+ITEM 1 MULTILINE TEXT 3: line 7
+line 8
+line 9
 
-ITEM SUBTITLE 2: Second item subtitle
-ITEM ABSTRACT 2: Another abstract but this time
+ITEM 2 SUBTITLE: Second item subtitle
+ITEM 2 ABSTRACT: Another abstract but this time
 with multiple lines
-ITEM INNER ITEM TITLE 2: tt2
-ITEM INNER ITEM DESCRIPTION 2: dd2
+ITEM 2 INNER ITEM TITLE: tt2
+ITEM 2 INNER ITEM DESCRIPTION: dd2
+ITEM 2 INNER ELEMENT 1 VALUE: 2.0
+ITEM 2 INNER ELEMENT 1 IS ACCURATE: no
+ITEM 2 INNER ELEMENT 2 VALUE: 8.958
+ITEM 2 INNER ELEMENT 2 IS ACCURATE: True
 """
         parsed_output = self.UltraSubtypeTestOutput.parse_response(completion_output)
         assert parsed_output.title == "Main head title"
@@ -395,11 +409,22 @@ ITEM INNER ITEM DESCRIPTION 2: dd2
         assert parsed_output.items[0].abstract == "Jsut some random abstract"
         assert parsed_output.items[0].inner_item.title == "INNER TITLE 1"
         assert parsed_output.items[0].inner_item.description == "DESCription 1"
+        assert len(parsed_output.items[0].inner_elements) == 2
+        assert parsed_output.items[0].inner_elements[0].value == 1.0
+        assert parsed_output.items[0].inner_elements[0].is_accurate == True
+        assert parsed_output.items[0].inner_elements[1].value == 3.14
+        assert parsed_output.items[0].inner_elements[1].is_accurate == False
+        assert parsed_output.items[0].multiline_text == ["line 1\nline 2\nline 3", "line 4\nline 5\nline 6", "line 7\nline 8\nline 9"]
 
         assert parsed_output.items[1].subtitle == "Second item subtitle"
         assert parsed_output.items[1].description is None
         assert parsed_output.items[1].abstract == "Another abstract but this time\nwith multiple lines"
         assert parsed_output.items[1].inner_item.title == "tt2"
         assert parsed_output.items[1].inner_item.description == "dd2"
+        assert len(parsed_output.items[1].inner_elements) == 2
+        assert parsed_output.items[1].inner_elements[0].value == 2.0
+        assert parsed_output.items[1].inner_elements[0].is_accurate == False
+        assert parsed_output.items[1].inner_elements[1].value == 8.958
+        assert parsed_output.items[1].inner_elements[1].is_accurate == True
 
     # endregion

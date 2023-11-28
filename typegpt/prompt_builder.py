@@ -15,8 +15,12 @@ class OutputPromptFactory:
 
         if element_type := if_array_element_list_type(field.type_):
             subfields = list(element_type.__fields__.values())
-            subprompt_factory = OutputPromptFactory(subfields, name_prefixes=self.name_prefixes + [field.name])
-            examples = [subprompt_factory._generate_schema(offset=i + 1) for i in range(max_count)]
+            # subprompt_factory = OutputPromptFactory(subfields, name_prefixes=self.name_prefixes + [field.name])
+            # examples = [subprompt_factory._generate_schema(offset=i + 1) for i in range(max_count)]
+            examples = [
+                OutputPromptFactory(subfields, name_prefixes=self.name_prefixes + [field.name + f" {i+1}"])._generate_schema(offset=i + 1)
+                for i in range(max_count)
+            ]
         else:
             field_name = " ".join(self.name_prefixes + [field.name])
             examples = [f"{field_name} {i+1}: <{info.instruction(ExamplePosition(i+1))}>" for i in range(max_count)]
@@ -31,8 +35,8 @@ class OutputPromptFactory:
 
         for field in self.fields:
             field_name = " ".join(self.name_prefixes + [field.name])
-            if offset > 0:
-                field_name += f" {offset}"
+            # if offset > 0:
+            #     field_name += f" {offset}"
 
             if isinstance(field.info, LLMOutputInfo):
                 if field_type := if_response_type(field.type_):

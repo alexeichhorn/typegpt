@@ -129,12 +129,12 @@ STRING 1: <Put the first string here>
 STRING 2: <Put the second string here>
 ...
 
-ITEM SUBTITLE 1: <Put the first subtitle here>
-ITEM DESCRIPTION 1: <Put the first item description here>
-ITEM ABSTRACT 1: <Some instruction>
-ITEM SUBTITLE 2: <Put the second subtitle here>
-ITEM DESCRIPTION 2: <Put the second item description here>
-ITEM ABSTRACT 2: <Some instruction>
+ITEM 1 SUBTITLE: <Put the first subtitle here>
+ITEM 1 DESCRIPTION: <Put the first item description here>
+ITEM 1 ABSTRACT: <Some instruction>
+ITEM 2 SUBTITLE: <Put the second subtitle here>
+ITEM 2 DESCRIPTION: <Put the second item description here>
+ITEM 2 ABSTRACT: <Some instruction>
 ...
 
 SUBITEM TITLE: <Put the title here>
@@ -180,28 +180,28 @@ Always return the answer in the following format:
 TITLE: <Put the title here>
 
 SUBITEM TITLE: <Put the title here>
-SUBITEM X SUBTITLE 1: <Put the first subtitle here>
-SUBITEM X SUBTITLE 2: <Put the second subtitle here>
+SUBITEM X 1 SUBTITLE: <Put the first subtitle here>
+SUBITEM X 2 SUBTITLE: <Put the second subtitle here>
 ...
 
-ITEM SUBTITLE 1: <Put the first subtitle here>
-ITEM DESCRIPTION 1: <Put the first description here>
-ITEM ABSTRACT 1: <Put the first abstract here>
+ITEM 1 SUBTITLE: <Put the first subtitle here>
+ITEM 1 DESCRIPTION: <Put the first description here>
+ITEM 1 ABSTRACT: <Put the first abstract here>
 
-ITEM INNER ITEM TITLE 1: <Put the title here>
-ITEM INNER ITEM DESCRIPTION 1: <Put the description here>
+ITEM 1 INNER ITEM TITLE: <Put the title here>
+ITEM 1 INNER ITEM DESCRIPTION: <Put the description here>
 
-ITEM INNER ELEMENT VALUE 1: <Put the first value here>
-ITEM INNER ELEMENT VALUE 2: <Put the second value here>
-ITEM SUBTITLE 2: <Put the second subtitle here>
-ITEM DESCRIPTION 2: <Put the second description here>
-ITEM ABSTRACT 2: <Put the second abstract here>
+ITEM 1 INNER ELEMENT 1 VALUE: <Put the first value here>
+ITEM 1 INNER ELEMENT 2 VALUE: <Put the second value here>
+ITEM 2 SUBTITLE: <Put the second subtitle here>
+ITEM 2 DESCRIPTION: <Put the second description here>
+ITEM 2 ABSTRACT: <Put the second abstract here>
 
-ITEM INNER ITEM TITLE 2: <Put the title here>
-ITEM INNER ITEM DESCRIPTION 2: <Put the description here>
+ITEM 2 INNER ITEM TITLE: <Put the title here>
+ITEM 2 INNER ITEM DESCRIPTION: <Put the description here>
 
-ITEM INNER ELEMENT VALUE 1: <Put the first value here>
-ITEM INNER ELEMENT VALUE 2: <Put the second value here>
+ITEM 2 INNER ELEMENT 1 VALUE: <Put the first value here>
+ITEM 2 INNER ELEMENT 2 VALUE: <Put the second value here>
 ...
 \"""
 """.strip()
