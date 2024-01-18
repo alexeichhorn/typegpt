@@ -95,6 +95,27 @@ class Output(BaseLLMResponse):
 
 ```
 
+### Example 4
+
+You can nest response types. Note that you need to use `BaseLLMArrayElement` for classes that you want to nest inside a list. To add instructions inside an element of `BaseLLMArrayElement`, you must use `LLMArrayElementOutput` instead of `LLMOutput`.
+
+```python
+class Output(BaseLLMResponse):
+
+    class Item(BaseLLMArrayElement):
+
+        class Description(BaseLLMResponse):
+            short: str | None
+            long: str
+
+        title: str
+        description: Description
+        price: float = LLMArrayElementOutput(instruction=lambda pos: f"The price of the {pos.ordinal} item")
+
+    items: list[Item]
+    count: int
+```
+
 
 
 
@@ -222,9 +243,3 @@ MOUSE 2: <Put the second mouse here>
 ```
 Notice how the plural "mice" is automatically converted to the singular "mouse" to avoid confusing the language model.
 
-
-
-
-## Coming Soon
-
-- Support for output classes within output classes, especially arrays
