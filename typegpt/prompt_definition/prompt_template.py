@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable, ClassVar, Generic, Protocol, TypeVar
 
+from typegpt.prompt_definition.few_shot_example import FewShotExample
+
 from ..base import BaseLLMResponse
 from ..fields import LLMArrayOutput
 from ..message_collection_builder import EncodedMessage, MessageCollectionFactory
@@ -22,6 +24,12 @@ class PromptTemplate(Protocol):  # , Generic[_Output]):
         @returns: whether the parameters could be further reduced
         """
         return False
+
+    def few_shot_examples(self) -> list[FewShotExample[BaseLLMResponse]]:  # list[FewShotExample[_Output]]:
+        """
+        Override this method to provide few shot examples
+        """
+        return []
 
     Output: type[BaseLLMResponse]  # type[_Output]
 
