@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import copy
 from typing import TYPE_CHECKING, Callable, Generic, TypeVar
+from typegpt.example_builder import ExampleOutputFactory
+
+from typegpt.prompt_definition.few_shot_example import FewShotExample
 
 from .exceptions import LLMTokenLimitExceeded
 from .prompt_builder import OutputPromptFactory
@@ -20,12 +23,25 @@ class MessageCollectionFactory(Generic[Prompt]):
             list(prompt.Output.__fields__.values())
         )  #  TODO: add config for `threaten` and more
 
+    def _generate_single_fewshot_example_messages(self, example: FewShotExample) -> list[EncodedMessage]:
+        encoded_output = ExampleOutputFactory(example.output).generate()
+        return [
+            {"role": "system", "name": "example_user", "content": example.input},
+            {"role": "system", "name": "example_assistant", "content": encoded_output},
+        ]
+
+    def _generate_fewshot_example_messages(self, examples: list[FewShotExample]) -> list[EncodedMessage]:
+        return sum([self._generate_single_fewshot_example_messages(example) for example in examples], [])
+
     def _generate_messages_from_prompt(self, prompt: Prompt) -> list[EncodedMessage]:
         system_prompt = prompt.system_prompt()
         system_prompt += "\n\n"
         system_prompt += self.output_prompt_factory.generate()
 
         result: list[EncodedMessage] = [{"role": "system", "content": system_prompt}]
+
+        if few_shot_examples := prompt.few_shot_examples():
+            result += self._generate_fewshot_example_messages(few_shot_examples)
 
         result.append({"role": "user", "content": prompt.user_prompt()})
 
