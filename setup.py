@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="typegpt",
-    version="0.1.1",
+    version="0.2.0",
     author="Alexander Eichhorn",
     author_email="",
     description="TypeGPT - Make GPT safe for production",
