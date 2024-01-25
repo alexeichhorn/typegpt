@@ -26,7 +26,7 @@ class TestOpenAIChatCompletion:
         ]
 
         # check if test covers all models (increase if new models are added)
-        assert len(OpenAIChatModel.__args__) == 16  #  type: ignore
+        assert len(OpenAIChatModel.__args__) == 17  #  type: ignore
 
         client = AsyncTypeOpenAI(api_key="mock")
 
@@ -34,6 +34,7 @@ class TestOpenAIChatCompletion:
         assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-0301") == 29
         assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-0613") == 27
         assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-1106") == 27
+        assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-0125") == 27
         assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-16k") == 27
         assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-3.5-turbo-16k-0613") == 27
         assert client.chat.completions.num_tokens_from_messages(test_messages, model="gpt-4") == 27
@@ -49,7 +50,7 @@ class TestOpenAIChatCompletion:
 
     def test_max_token_counter(self):
         # check if test covers all models (increase if new models are added)
-        assert len(OpenAIChatModel.__args__) == 16  #  type: ignore
+        assert len(OpenAIChatModel.__args__) == 17  #  type: ignore
 
         client = AsyncTypeOpenAI(api_key="mock")
 
@@ -57,6 +58,7 @@ class TestOpenAIChatCompletion:
         assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo-0301") == 4096
         assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo-0613") == 4096
         assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo-1106") == 16384
+        assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo-0125") == 16384
         assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo-16k") == 16384
         assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo-16k-0613") == 16384
         assert client.chat.completions.max_tokens_of_model("gpt-4") == 8192
