@@ -15,7 +15,7 @@ class BaseChatCompletions:
                 return 8192
             case "gpt-4-32k" | "gpt-4-32k-0314" | "gpt-4-32k-0613":
                 return 32768
-            case "gpt-4-1106-preview" | "gpt-4-vision-preview":
+            case "gpt-4-turbo-preview" | "gpt-4-1106-preview" | "gpt-4-0125-preview" | "gpt-4-vision-preview":
                 return 128_000
 
     # copied from OpenAI: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
@@ -49,6 +49,8 @@ class BaseChatCompletions:
             "gpt-3.5-turbo-16k-0613",
             "gpt-4-32k-0314",
             "gpt-4-32k-0613",
+            "gpt-4-turbo-preview",
+            "gpt-4-0125-preview",
             "gpt-4-1106-preview",
             "gpt-4-vision-preview",
         ):
