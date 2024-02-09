@@ -1,3 +1,4 @@
+from typegpt.utils.utils import limit_newlines
 from .example_formatter import LimitedExampleListFormatter
 from .fields import ExamplePosition, LLMArrayElementOutputInfo, LLMArrayOutputInfo, LLMFieldInfo, LLMOutputInfo
 from .utils.type_checker import if_array_element_list_type, if_response_type
@@ -21,6 +22,11 @@ class OutputPromptFactory:
                 OutputPromptFactory(subfields, name_prefixes=self.name_prefixes + [field.name + f" {i+1}"])._generate_schema(offset=i + 1)
                 for i in range(max_count)
             ]
+            # append newline for each example that is complex enough (i.e. contains multiple lines)
+            if max_count > 0 and "\n" in examples[0]:
+                for i in range(len(examples)):
+                    examples[i] += "\n"
+                examples[0] = "\n" + examples[0]  # prepend newline to first example
         else:
             field_name = " ".join(self.name_prefixes + [field.name])
             examples = [f"{field_name} {i+1}: <{info.instruction(ExamplePosition(i+1))}>" for i in range(max_count)]
@@ -69,7 +75,7 @@ class OutputPromptFactory:
 
             prompt += "\n"
 
-        return prompt.rstrip()
+        return limit_newlines(prompt.rstrip())
 
     def generate(self) -> str:
         if self.threaten:
