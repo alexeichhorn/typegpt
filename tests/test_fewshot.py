@@ -208,6 +208,7 @@ ITEM 1 MULTILINE TEXT 2: b
 ITEM 1 MULTILINE TEXT 3: c
 d
 ITEM 1 MULTILINE TEXT 4: e
+
 ITEM 2 SUBTITLE: Subtitle in item 2
 ITEM 2 ABSTRACT: Abstract in item 2
 
@@ -216,13 +217,13 @@ ITEM 2 INNER ITEM DESCRIPTION: Description in inner item 2
 
 ITEM 2 INNER ELEMENT 1 VALUE: 1.0
 ITEM 2 INNER ELEMENT 1 IS ACCURATE: True
+
 ITEM 2 INNER ELEMENT 2 VALUE: 0.5
 ITEM 2 INNER ELEMENT 2 IS ACCURATE: False
+
 ITEM 2 INNER ELEMENT 3 VALUE: 3.14159
 ITEM 2 INNER ELEMENT 3 IS ACCURATE: False
 """.strip()
-
-        print(f"Actually received 2nd msg: {messages[-2]['content']}")
 
         assert messages == [
             {"role": "system", "name": "example_user", "content": "Some input 1"},

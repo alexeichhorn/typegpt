@@ -132,9 +132,11 @@ STRING 2: <Put the second string here>
 ITEM 1 SUBTITLE: <Put the first subtitle here>
 ITEM 1 DESCRIPTION: <Put the first item description here>
 ITEM 1 ABSTRACT: <Some instruction>
+
 ITEM 2 SUBTITLE: <Put the second subtitle here>
 ITEM 2 DESCRIPTION: <Put the second item description here>
 ITEM 2 ABSTRACT: <Some instruction>
+
 ...
 
 SUBITEM TITLE: <Put the title here>
@@ -169,6 +171,7 @@ OPTIONAL SUBITEM TITLE: <Put the title here>
 
         title: str
         subitem: DirectItem
+        middle_int: int
         items: list[Item]
 
     def test_ultra_subtype_output_fields(self):
@@ -184,6 +187,8 @@ SUBITEM X 1 SUBTITLE: <Put the first subtitle here>
 SUBITEM X 2 SUBTITLE: <Put the second subtitle here>
 ...
 
+MIDDLE INT: <Put the middle int here>
+
 ITEM 1 SUBTITLE: <Put the first subtitle here>
 ITEM 1 DESCRIPTION: <Put the first description here>
 ITEM 1 ABSTRACT: <Put the first abstract here>
@@ -193,6 +198,7 @@ ITEM 1 INNER ITEM DESCRIPTION: <Put the description here>
 
 ITEM 1 INNER ELEMENT 1 VALUE: <Put the first value here>
 ITEM 1 INNER ELEMENT 2 VALUE: <Put the second value here>
+
 ITEM 2 SUBTITLE: <Put the second subtitle here>
 ITEM 2 DESCRIPTION: <Put the second description here>
 ITEM 2 ABSTRACT: <Put the second abstract here>
@@ -202,6 +208,7 @@ ITEM 2 INNER ITEM DESCRIPTION: <Put the description here>
 
 ITEM 2 INNER ELEMENT 1 VALUE: <Put the first value here>
 ITEM 2 INNER ELEMENT 2 VALUE: <Put the second value here>
+
 ...
 \"""
 """.strip()

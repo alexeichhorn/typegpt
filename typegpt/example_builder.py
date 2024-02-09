@@ -1,6 +1,7 @@
 from typegpt.base import BaseLLMResponse
 from typegpt.fields import LLMArrayElementOutputInfo, LLMArrayOutputInfo, LLMOutputInfo
-from typegpt.utils.type_checker import if_response_type, is_response_type, if_array_element_list_type
+from typegpt.utils.type_checker import if_array_element_list_type, if_response_type, is_response_type
+from typegpt.utils.utils import limit_newlines
 
 
 class ExampleOutputFactory:
@@ -32,7 +33,14 @@ class ExampleOutputFactory:
                     lines.append("")
                     for i, subelement in enumerate(getattr(self.example, field.key)):
                         subelement_factory = ExampleOutputFactory(subelement, name_prefixes=self.name_prefixes + [field.name, str(i + 1)])
-                        lines.append(subelement_factory.generate())
+
+                        subelement_content = subelement_factory.generate()
+
+                        # append newline for each entry that is complex enough (i.e. contains multiple lines)
+                        if "\n" in subelement_content:
+                            subelement_content += "\n"
+
+                        lines.append(subelement_content)
 
                 else:
                     for i, subelement in enumerate(getattr(self.example, field.key)):
@@ -54,4 +62,4 @@ class ExampleOutputFactory:
             else:
                 print(f"Skipping field {field.name} because it's not an LLMOutputInfo. It is {field.info}.")
 
-        return "\n".join(lines).strip()
+        return limit_newlines("\n".join(lines).strip())
