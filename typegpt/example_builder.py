@@ -1,13 +1,23 @@
+from typing import TypeVar
+
 from typegpt.base import BaseLLMResponse
 from typegpt.fields import LLMArrayElementOutputInfo, LLMArrayOutputInfo, LLMOutputInfo
-from typegpt.utils.type_checker import if_array_element_list_type, if_response_type, is_response_type
+from typegpt.utils.type_checker import SupportedBaseTypes, if_array_element_list_type, if_response_type, is_response_type
 from typegpt.utils.utils import limit_newlines
+
+BaseTypeT = TypeVar("BaseTypeT", bound=SupportedBaseTypes)
 
 
 class ExampleOutputFactory:
     def __init__(self, example: BaseLLMResponse, name_prefixes: list[str] = []):
         self.example = example
         self.name_prefixes = name_prefixes
+
+    def _transform_value(self, value: BaseTypeT) -> str | BaseTypeT:
+        """Transforms single values into values that can be printed in the output prompt"""
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        return value
 
     def generate(self) -> str:
         lines: list[str] = []
@@ -26,6 +36,7 @@ class ExampleOutputFactory:
                 else:
                     if value is None:
                         continue
+                    value = self._transform_value(value)
                     lines.append(f"{field_name}: {value}")
 
             elif isinstance(field.info, LLMArrayOutputInfo):
@@ -44,7 +55,7 @@ class ExampleOutputFactory:
 
                 else:
                     for i, subelement in enumerate(getattr(self.example, field.key)):
-                        lines.append(f"{field_name} {i + 1}: {subelement}")
+                        lines.append(f"{field_name} {i + 1}: {self._transform_value(subelement)}")
 
             elif isinstance(field.info, LLMArrayElementOutputInfo):
                 value = getattr(self.example, field.key)
@@ -57,9 +68,7 @@ class ExampleOutputFactory:
                 else:
                     if value is None:
                         continue
+                    value = self._transform_value(value)
                     lines.append(f"{field_name}: {value}")
-
-            else:
-                print(f"Skipping field {field.name} because it's not an LLMOutputInfo. It is {field.info}.")
 
         return limit_newlines("\n".join(lines).strip())
