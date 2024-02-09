@@ -1,14 +1,12 @@
 import os
 import sys
 
-from typegpt.prompt_definition.prompt_settings import PromptSettings
-
 myPath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, myPath + "/../")
 
 import pytest
 
-from typegpt import BaseLLMResponse, LLMArrayElementOutput, LLMArrayOutput, LLMOutput, PromptTemplate
+from typegpt import BaseLLMResponse, LLMArrayElementOutput, LLMArrayOutput, LLMOutput, PromptSettings, PromptTemplate
 
 
 class TestSettings:
