@@ -23,7 +23,7 @@
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter",
       "editor.codeActionsOnSave": {
-        "source.organizeImports": false
+        "source.organizeImports": "never"
       }
     },
     "python.analysis.extraPaths": [],
@@ -32,6 +32,6 @@
       "**/.git": true
     },
     "editor.codeActionsOnSave": {
-      "source.fixAll": true
+      "source.fixAll": "explicit"
     },
   }
