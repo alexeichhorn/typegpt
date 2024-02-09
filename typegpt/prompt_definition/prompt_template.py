@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable, ClassVar, Generic, Protocol, TypeVar
 
 from typegpt.prompt_definition.few_shot_example import FewShotExample
+from typegpt.prompt_definition.prompt_settings import PromptSettings
 
 from ..base import BaseLLMResponse
 from ..fields import LLMArrayOutput
@@ -13,9 +14,11 @@ from ..message_collection_builder import EncodedMessage, MessageCollectionFactor
 
 class PromptTemplate(Protocol):  # , Generic[_Output]):
     def system_prompt(self) -> str:
+        """System prompt for the LLM (required)"""
         ...
 
     def user_prompt(self) -> str:
+        """User prompt for the LLM (required)"""
         ...
 
     def reduce_if_possible(self) -> bool:
@@ -32,6 +35,8 @@ class PromptTemplate(Protocol):  # , Generic[_Output]):
         return []
 
     Output: type[BaseLLMResponse]  # type[_Output]
+
+    settings: PromptSettings = PromptSettings()
 
     def generate_messages(self, token_limit: int, token_counter: Callable[[list[EncodedMessage]], int]):
         """

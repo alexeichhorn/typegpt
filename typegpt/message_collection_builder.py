@@ -35,8 +35,10 @@ class MessageCollectionFactory(Generic[Prompt]):
 
     def _generate_messages_from_prompt(self, prompt: Prompt) -> list[EncodedMessage]:
         system_prompt = prompt.system_prompt()
-        system_prompt += "\n\n"
-        system_prompt += self.output_prompt_factory.generate()
+
+        if not prompt.settings.disable_formatting_instructions:
+            system_prompt += "\n\n"
+            system_prompt += self.output_prompt_factory.generate()
 
         result: list[EncodedMessage] = [{"role": "system", "content": system_prompt}]
 
