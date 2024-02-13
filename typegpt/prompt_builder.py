@@ -85,7 +85,7 @@ class OutputPromptFactory:
 
         prompt += '\n"""\n'
 
-        prompt += self._generate_schema() + "\n"
+        prompt += self._generate_schema().strip() + "\n"
 
         prompt += '"""'
 

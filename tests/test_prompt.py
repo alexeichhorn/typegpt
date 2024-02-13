@@ -147,6 +147,39 @@ OPTIONAL SUBITEM TITLE: <Put the title here>
 
         assert prompt == expected_prompt
 
+    # -
+
+    class SubtypeOnlyTestOutput(BaseLLMResponse):
+        class Item(BaseLLMArrayElement):
+            title: str
+            subtitles: list[str]
+
+        items: list[Item]
+
+    def test_subtype_only_output_fields(self):
+        fields = list(self.SubtypeOnlyTestOutput.__fields__.values())
+        prompt = OutputPromptFactory(fields).generate()
+        expected_prompt = f"""
+Always return the answer in the following format:
+\"""
+ITEM 1 TITLE: <Put the first title here>
+ITEM 1 SUBTITLE 1: <Put the first subtitle here>
+ITEM 1 SUBTITLE 2: <Put the second subtitle here>
+...
+
+ITEM 2 TITLE: <Put the second title here>
+ITEM 2 SUBTITLE 1: <Put the first subtitle here>
+ITEM 2 SUBTITLE 2: <Put the second subtitle here>
+...
+
+...
+\"""
+""".strip()
+
+        assert prompt == expected_prompt
+
+    # -
+
     class UltraSubtypeTestOutput(BaseLLMResponse):
         class Item(BaseLLMArrayElement):
             class InnerItem(BaseLLMResponse):
