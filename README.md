@@ -2,7 +2,7 @@
 
 It is inherently difficult to produce outputs from LLMs in a consistent structure. TypeGPT simplifies this process to be as easy as defining a class in Python.
 
-Powering our own projects, such as [BoostSEO](https://boostseo.ai)
+Powering our own projects, such as [Spexia](https://getspexia.com)
 
 
 ## Installation
