@@ -175,9 +175,52 @@ output = client.chat.completions.generate_output(model="gpt-4", prompt=prompt, o
 This parameter is not merely a type decorator. It can also be used to overwrite the actual output type that GPT attempts to predict.
 
 
+### Few-Shot Prompting
+
+Give examples to the model to explain tasks that are hard to explain:
+
+```python
+class ExamplePrompt(PromptTemplate):
+
+    class Output(BaseLLMResponse):
+        class Ingredient(BaseLLMResponse):
+            name: str
+            quantity: int
+
+        ingredients: list[Ingredient]
+
+    def system_prompt(self) -> str:
+        return "Given a recipe, extract the ingredients."
+
+    def few_shot_examples(self) -> list[FewShotExample[Output]]:
+        return [
+            FewShotExample(
+                input="Let's take two apples, three bananas, and four oranges.",
+                output=self.Output(ingredients=[
+                    self.Output.Ingredient(name="apple", quantity=2),
+                    self.Output.Ingredient(name="banana", quantity=3),
+                    self.Output.Ingredient(name="orange", quantity=4),
+                ])
+            ),
+            FewShotExample(
+                input="My recipe requires five eggs and two cups of flour.",
+                output=self.Output(ingredients=[
+                    self.Output.Ingredient(name="egg", quantity=5),
+                    self.Output.Ingredient(name="flour cups", quantity=2),
+                ])
+            )
+        ]
+
+    def user_prompt(self) -> str:
+        ...
+```
+
+
+
+
 ### Azure
 
-e sure to use the `AzureChatModel` as the model when generating the output, which consists of the deployment_id and the corresponding base model (this is used for automatically reducing prompts if needed).
+Make sure to use the `AzureChatModel` as the model when generating the output, which consists of the deployment_id and the corresponding base model (this is used for automatically reducing prompts if needed).
 ```python
 from typegpt.openai import AzureChatModel, TypeAzureOpenAI
 
