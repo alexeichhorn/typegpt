@@ -1,3 +1,4 @@
+import inspect
 from typing import Mapping
 
 import httpx
@@ -25,6 +26,7 @@ class AsyncTypeOpenAI(AsyncOpenAI):
         *,
         api_key: str | None = None,
         organization: str | None = None,
+        project: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -35,18 +37,31 @@ class AsyncTypeOpenAI(AsyncOpenAI):
         # only needed to have same subclass capabilities (i.e. for Azure)
         _strict_response_validation: bool = False,
     ) -> None:
-        super().__init__(
-            api_key=api_key,
-            organization=organization,
-            base_url=base_url,
-            timeout=timeout,
-            max_retries=max_retries,
-            default_headers=default_headers,
-            default_query=default_query,
-            http_client=http_client,
-        )
+        init_signature = inspect.signature(super.__init__)
+        if "project" in init_signature.parameters:  # openai version >= 1.20.0
+            super().__init__(
+                api_key=api_key,
+                organization=organization,
+                project=project,
+                base_url=base_url,
+                timeout=timeout,
+                max_retries=max_retries,
+                default_headers=default_headers,
+                default_query=default_query,
+                http_client=http_client,
+            )
+        else:
+            super().__init__(
+                api_key=api_key,
+                organization=organization,
+                base_url=base_url,
+                timeout=timeout,
+                max_retries=max_retries,
+                default_headers=default_headers,
+                default_query=default_query,
+                http_client=http_client,
+            )
         self.chat = AsyncTypeChat(self)
 
 
-class AsyncTypeAzureOpenAI(AsyncAzureOpenAI, AsyncTypeOpenAI):
-    ...
+class AsyncTypeAzureOpenAI(AsyncAzureOpenAI, AsyncTypeOpenAI): ...
