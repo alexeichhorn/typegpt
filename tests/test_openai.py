@@ -56,7 +56,7 @@ class TestOpenAIChatCompletion:
 
         client = AsyncTypeOpenAI(api_key="mock")
 
-        assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo") == 4096
+        assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo") == 16384
         assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo-0301") == 4096
         assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo-0613") == 4096
         assert client.chat.completions.max_tokens_of_model("gpt-3.5-turbo-1106") == 16384
