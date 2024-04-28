@@ -376,7 +376,7 @@ class TestOpenAIChatCompletion:
         client = AsyncTypeOpenAI(api_key="mock")
 
         result = await client.chat.completions.generate_output(
-            model="gpt-3.5-turbo", prompt=FullExamplePrompt(), max_output_tokens=100, retry_on_parse_error=5
+            model="gpt-3.5-turbo-0613", prompt=FullExamplePrompt(), max_output_tokens=100, retry_on_parse_error=5
         )
 
         assert isinstance(result, FullExamplePrompt.Output)
@@ -404,7 +404,7 @@ class TestOpenAIChatCompletion:
         client = AsyncTypeOpenAI(api_key="mock")
 
         result = await client.chat.completions.generate_output(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-0613",
             prompt=non_reducing_prompt_100,
             max_output_tokens=100,
         )
@@ -413,7 +413,7 @@ class TestOpenAIChatCompletion:
 
         with pytest.raises(LLMTokenLimitExceeded):
             result = await client.chat.completions.generate_output(
-                model="gpt-3.5-turbo",
+                model="gpt-3.5-turbo-0613",
                 prompt=non_reducing_prompt_1000,
                 max_output_tokens=100,
             )
@@ -441,7 +441,7 @@ class TestOpenAIChatCompletion:
         reducing_prompt_100 = ReducingTestPrompt(100)
 
         result = await client.chat.completions.generate_output(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-0613",
             prompt=reducing_prompt_100,
             max_output_tokens=100,
         )
@@ -451,7 +451,7 @@ class TestOpenAIChatCompletion:
         reducing_prompt_1000 = ReducingTestPrompt(1000)
 
         result = await client.chat.completions.generate_output(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-0613",
             prompt=reducing_prompt_1000,
             max_output_tokens=100,
         )
@@ -482,7 +482,7 @@ class TestOpenAIChatCompletion:
         prompt = FullExamplePrompt("test")
 
         result = client.chat.completions.generate_output(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-0613",
             prompt=prompt,
             output_type=prompt.Output,
             max_output_tokens=100,
