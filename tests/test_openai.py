@@ -411,12 +411,15 @@ class TestOpenAIChatCompletion:
 
         non_reducing_prompt_1000 = NonAutomaticReducingPrompt(1000)
 
-        with pytest.raises(LLMTokenLimitExceeded):
+        with pytest.raises(LLMTokenLimitExceeded) as exc:
             result = await client.chat.completions.generate_output(
                 model="gpt-3.5-turbo-0613",
                 prompt=non_reducing_prompt_1000,
                 max_output_tokens=100,
             )
+
+        assert exc.value.system_prompt == "This is a random system prompt"
+        assert exc.value.raw_completion is None
 
         class ReducingTestPrompt(PromptTemplate):
             def __init__(self, number: int):

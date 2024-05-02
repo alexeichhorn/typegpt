@@ -71,7 +71,11 @@ class MessageCollectionFactory(Generic[Prompt]):
                 self.prompt = prompt  # update the prompt if successful
                 return generated_messages
 
-        raise LLMTokenLimitExceeded(f"Prompt can't be reduced to fit within the token limit ({token_limit})")
+        raise LLMTokenLimitExceeded(
+            f"Prompt can't be reduced to fit within the token limit ({token_limit})",
+            system_prompt=prompt.system_prompt(),
+            user_prompt=prompt.user_prompt(),
+        )
 
 
 if TYPE_CHECKING:
