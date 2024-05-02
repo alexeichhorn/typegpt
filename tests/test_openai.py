@@ -14,7 +14,7 @@ from openai.types.chat.chat_completion import Choice
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 
 from typegpt import BaseLLMResponse, LLMArrayOutput, LLMOutput, PromptTemplate
-from typegpt.exceptions import LLMTokenLimitExceeded
+from typegpt.exceptions import LLMOutputFieldWrongType, LLMTokenLimitExceeded
 from typegpt.openai import AsyncTypeAzureOpenAI, AsyncTypeOpenAI, OpenAIChatModel, TypeAzureOpenAI, TypeOpenAI
 
 
@@ -493,3 +493,77 @@ class TestOpenAIChatCompletion:
 
         assert result.title == "This is a test completion"
         assert result.count == 9
+
+    # region: - Exceptions
+
+    def test_exception_injection_sync(self, mock_openai_completion_sync):
+        class ExamplePrompt(PromptTemplate):
+            class Output(BaseLLMResponse):
+                title: int  # wrong type
+                count: int
+
+            def system_prompt(self) -> str:
+                return "This is a random system prompt"
+
+            def user_prompt(self) -> str:
+                return "This is a random user prompt"
+
+        client = TypeOpenAI(api_key="mock")
+
+        with pytest.raises(LLMOutputFieldWrongType) as exc:
+            result = client.chat.completions.generate_output(
+                model="gpt-3.5-turbo-0613",
+                prompt=ExamplePrompt(),
+                output_type=ExamplePrompt.Output,
+                max_output_tokens=100,
+            )
+
+        assert exc.value.system_prompt and exc.value.system_prompt.startswith("This is a random system prompt")  # + format instruction
+        assert exc.value.user_prompt == "This is a random user prompt"
+        assert exc.value.raw_completion == "TITLE: This is a test completion\nCOUNT: 09"
+
+    @pytest.mark.asyncio
+    async def test_exception_injection_async(self, mock_openai_completion):
+        class ExamplePrompt(PromptTemplate):
+            class Output(BaseLLMResponse):
+                title: int  # wrong type
+                count: int
+
+            def system_prompt(self) -> str:
+                return "This is a random system prompt"
+
+            def user_prompt(self) -> str:
+                return "This is a random user prompt"
+
+        client = AsyncTypeOpenAI(api_key="mock")
+
+        with pytest.raises(LLMOutputFieldWrongType) as exc:
+            result = await client.chat.completions.generate_output(
+                model="gpt-3.5-turbo-0613",
+                prompt=ExamplePrompt(),
+                output_type=ExamplePrompt.Output,
+                max_output_tokens=100,
+            )
+
+        assert exc.value.system_prompt and exc.value.system_prompt.startswith("This is a random system prompt")  # + format instruction
+        assert exc.value.user_prompt == "This is a random user prompt"
+        assert exc.value.raw_completion == "TITLE: This is a test completion\nCOUNT: 09"
+
+        # - Azure
+
+        azure_client = AsyncTypeAzureOpenAI(api_key="mock", azure_endpoint="mock", api_version="mock")
+
+        with pytest.raises(LLMOutputFieldWrongType) as exc2:
+            result = await azure_client.chat.completions.generate_output(
+                model="gpt-3.5-turbo-0613",
+                prompt=ExamplePrompt(),
+                output_type=ExamplePrompt.Output,
+                max_output_tokens=100,
+            )
+
+        assert exc.value.system_prompt and exc.value.system_prompt.startswith("This is a random system prompt")  # + format instruction
+        assert exc2.value.user_prompt == "This is a random user prompt"
+        assert exc2.value.raw_completion == "TITLE: This is a test completion\nCOUNT: 09"
+
+
+# endregion: - Exceptions
