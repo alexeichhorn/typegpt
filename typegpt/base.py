@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
-from .exceptions import LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
+from .exceptions import LLMException, LLMOutputFieldInvalidLength, LLMOutputFieldMissing, LLMOutputFieldWrongType
 from .fields import ClassPlaceholder, LLMArrayElementOutputInfo, LLMArrayOutputInfo, LLMFieldInfo, LLMOutputInfo
 from .meta import LLMArrayElementMeta, LLMBaseMeta
 from .parser import Parser
@@ -163,7 +163,11 @@ class BaseLLMResponse(_InternalBaseLLMResponse, metaclass=LLMBaseMeta):
 
     @classmethod
     def parse_response(cls: type[_Self], response: str) -> _Self:
-        return Parser(cls).parse(response)
+        try:
+            return Parser(cls).parse(response)
+        except LLMException as e:
+            e.raw_completion = response
+            raise e
 
 
 # -

@@ -144,16 +144,24 @@ VALUE: 78
 TEXT: L1
 """
 
-        with pytest.raises(LLMOutputFieldMissing):
+        with pytest.raises(LLMOutputFieldMissing) as exc1:
             self.MultilineMultipleTestOutput.parse_response(completion_output_4)
+
+        assert exc1.value.system_prompt is None
+        assert exc1.value.user_prompt is None
+        assert exc1.value.raw_completion == completion_output_4
 
         completion_output = """
 TEXT: L1
 VALUE: 8xz
 """
 
-        with pytest.raises(LLMOutputFieldWrongType):
+        with pytest.raises(LLMOutputFieldWrongType) as exc2:
             self.MultilineMultipleTestOutput.parse_response(completion_output)
+
+        assert exc2.value.system_prompt is None
+        assert exc2.value.user_prompt is None
+        assert exc2.value.raw_completion == completion_output
 
     # endregion
     # region - 4
@@ -182,8 +190,12 @@ L4
 APPLE 1: L1
 """
 
-        with pytest.raises(LLMOutputFieldInvalidLength):
+        with pytest.raises(LLMOutputFieldInvalidLength) as exc:
             self.MultilineArrayTestOutput.parse_response(completion_output_2)
+
+        assert exc.value.system_prompt is None
+        assert exc.value.user_prompt is None
+        assert exc.value.raw_completion == completion_output_2
 
         completion_output_3 = """
 APPLE 1: L1

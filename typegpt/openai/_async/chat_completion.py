@@ -12,7 +12,7 @@ from openai.types.chat import (
 )
 
 from ...base import BaseLLMResponse
-from ...exceptions import LLMParseException
+from ...exceptions import LLMException, LLMParseException
 from ...prompt_definition.prompt_template import PromptTemplate
 from ...utils.internal_types import _UseDefault, _UseDefaultType
 from ..base_chat_completion import BaseChatCompletions
@@ -107,8 +107,7 @@ class AsyncTypeChatCompletion(resources.chat.AsyncCompletions, BaseChatCompletio
         top_p: float | NotGiven = NOT_GIVEN,
         timeout: float | None | NotGiven = NOT_GIVEN,
         retry_on_parse_error: int = 0,
-    ) -> _Output:
-        ...
+    ) -> _Output: ...
 
     @overload
     async def generate_output(
@@ -126,8 +125,7 @@ class AsyncTypeChatCompletion(resources.chat.AsyncCompletions, BaseChatCompletio
         top_p: float | NotGiven = NOT_GIVEN,
         timeout: float | None | NotGiven = NOT_GIVEN,
         retry_on_parse_error: int = 0,
-    ) -> BaseLLMResponse:
-        ...
+    ) -> BaseLLMResponse: ...
 
     async def generate_output(
         self,
@@ -208,4 +206,9 @@ class AsyncTypeChatCompletion(resources.chat.AsyncCompletions, BaseChatCompletio
                     retry_on_parse_error=retry_on_parse_error - 1,
                 )
             else:
+                self._inject_exception_details(e, messages, completion)
                 raise e
+
+        except LLMException as e:
+            self._inject_exception_details(e, messages, completion)
+            raise e

@@ -1,6 +1,9 @@
+import tiktoken
+
+from typegpt.exceptions import LLMException
+
 from ..message_collection_builder import EncodedMessage
 from .views import OpenAIChatModel
-import tiktoken
 
 
 class BaseChatCompletions:
@@ -79,3 +82,13 @@ class BaseChatCompletions:
                     num_tokens += tokens_per_name
         num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
         return num_tokens
+
+    # - Exception Handling
+
+    def _inject_exception_details(self, e: LLMException, messages: list[EncodedMessage], raw_completion: str):
+        system_prompt = next((m["content"] for m in messages if m["role"] == "system"), None)
+        user_prompt = next((m["content"] for m in messages if m["role"] == "user"), None)
+
+        e.system_prompt = system_prompt
+        e.user_prompt = user_prompt
+        e.raw_completion = raw_completion
