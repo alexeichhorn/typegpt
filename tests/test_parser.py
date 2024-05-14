@@ -37,7 +37,7 @@ TAG 1: first tag
 some irrelevant stuff that should be ignored
 COOL INTEGER: 33
 FILLED OPTIONAL INTEGER: 44
-OPTIONAL BOOL: yes
+OPTIONAL BOOL: <yes>
 blabla
 CONNECTED FLOAT 1: 1.0
 CONNECTED FLOAT 2: 2.0

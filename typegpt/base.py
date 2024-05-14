@@ -4,6 +4,7 @@ from .exceptions import LLMException, LLMOutputFieldInvalidLength, LLMOutputFiel
 from .fields import ClassPlaceholder, LLMArrayElementOutputInfo, LLMArrayOutputInfo, LLMFieldInfo, LLMOutputInfo
 from .meta import LLMArrayElementMeta, LLMBaseMeta
 from .parser import Parser
+from .utils.utils import symmetric_strip
 
 if TYPE_CHECKING:
     from inspect import Signature
@@ -66,6 +67,7 @@ class _InternalBaseLLMResponse:
                 except ValueError:
                     raise LLMOutputFieldWrongType(f'"{value}" is not a valid float value')
             elif _type == bool:
+                value = symmetric_strip(value, [("<", ">"), ("(", ")")])
                 if value.lower() in ("true", "yes", "1"):
                     return True
                 elif value.lower() in ("false", "no", "0"):
