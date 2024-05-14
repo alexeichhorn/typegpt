@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="typegpt",
-    version="0.3.1",
+    version="0.3.2",
     author="Alexander Eichhorn",
     author_email="",
     description="TypeGPT - Make GPT safe for production",
@@ -15,7 +15,7 @@ setuptools.setup(
     install_requires=[
         "typing_extensions>=4.1.0",
         "inflect>=7.0.0",
-        "tiktoken>=0.5.0",
+        "tiktoken>=0.7.0",
         "openai>=1.1.0",
     ],
     packages=setuptools.find_packages(),
