@@ -27,6 +27,8 @@ class BaseChatCompletions:
                 | "gpt-4-turbo-2024-04-09"
                 | "gpt-4o"
                 | "gpt-4o-2024-05-13"
+                | "gpt-4o-mini"
+                | "gpt-4o-mini-2024-07-18"
             ):
                 return 128_000
 
@@ -70,6 +72,8 @@ class BaseChatCompletions:
             "gpt-4-turbo-2024-04-09",
             "gpt-4o",
             "gpt-4o-2024-05-13",
+            "gpt-4o-mini",
+            "gpt-4o-mini-2024-07-18",
         ):
             tokens_per_message = 3
             tokens_per_name = 1
