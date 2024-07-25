@@ -439,4 +439,86 @@ ITEM 2 INNER ELEMENT 2 IS ACCURATE: True
         assert parsed_output.items[1].inner_elements[1].value == 8.958
         assert parsed_output.items[1].inner_elements[1].is_accurate == True
 
+    # -
+
+    class UltraSubtypeTestWithOptionalsOutput(BaseLLMResponse):
+        class Item(BaseLLMArrayElement):
+            class InnerItem(BaseLLMResponse):
+                title: str | None
+                description: str | None
+
+            class InnerElement(BaseLLMArrayElement):
+                value: float
+                is_accurate: bool
+
+            subtitle: str
+            description: str | None = LLMArrayElementOutput(lambda pos: f"Put the {pos.ordinal} item description here")
+            abstract: str = LLMArrayElementOutput(lambda _: "...", multiline=True)
+            inner_item: InnerItem
+            inner_elements: list[InnerElement] = LLMArrayOutput(2, instruction=lambda _: "...")
+            multiline_text: list[str] = LLMArrayOutput((0, None), lambda _: "...", multiline=True)
+
+        class DirectItem(BaseLLMResponse):
+            class InnerDirectElement(BaseLLMArrayElement):
+                m: int
+                subtitle: str | None
+
+            title: str
+            x: list[InnerDirectElement]
+
+        title: str
+        subitem: DirectItem
+        items: list[Item]
+
+    def test_parse_ultra_subtype_output_with_empty_inner_item(self):
+        completion_output = """
+TITLE: x
+
+SUBITEM TITLE:
+some subtitle (regarded because nothing above)
+SUBITEM X 1 M: 1
+SUBITEM X 1 SUBTITLE:
+SUBITEM X 2 M: 2
+SUBITEM X 2 SUBTITLE: \n\
+
+ITEM 1 SUBTITLE: \n
+ITEM 1 DESCRIPTION:
+ITEM 1 ABSTRACT: \n
+ITEM 1 INNER ITEM TITLE: \n\
+ITEM 1 INNER ITEM DESCRIPTION: hello world
+ITEM 1 INNER ELEMENT 1 VALUE: 0.88
+ITEM 1 INNER ELEMENT 1 IS ACCURATE: yes
+ITEM 1 INNER ELEMENT 2 VALUE: 3
+ITEM 1 INNER ELEMENT 2 IS ACCURATE: False
+ITEM 1 MULTILINE TEXT 1:
+line 1
+line 2
+ITEM 1 MULTILINE TEXT 2: line 3
+line 4
+line 5
+ITEM 1 MULTILINE TEXT 3: line 6
+line 7
+line 8
+"""
+        parsed_output = self.UltraSubtypeTestWithOptionalsOutput.parse_response(completion_output)
+        assert parsed_output.title == "x"
+        assert parsed_output.subitem.title == "some subtitle (regarded because nothing above)"
+        print(parsed_output.subitem.x)
+        assert len(parsed_output.subitem.x) == 2
+        assert parsed_output.subitem.x[0].subtitle == None
+        assert parsed_output.subitem.x[1].subtitle == None
+
+        assert len(parsed_output.items) == 1
+        assert parsed_output.items[0].subtitle == ""
+        assert parsed_output.items[0].description == None
+        assert parsed_output.items[0].abstract == ""
+        assert parsed_output.items[0].inner_item.title == ""  # this was found as "DESCRIPTION: hello world" as a bug
+        assert parsed_output.items[0].inner_item.description == "hello world"
+        assert len(parsed_output.items[0].inner_elements) == 2
+        assert parsed_output.items[0].inner_elements[0].value == 0.88
+        assert parsed_output.items[0].inner_elements[0].is_accurate == True
+        assert parsed_output.items[0].inner_elements[1].value == 3
+        assert parsed_output.items[0].inner_elements[1].is_accurate == False
+        assert parsed_output.items[0].multiline_text == ["line 1\nline 2", "line 3\nline 4\nline 5", "line 6\nline 7\nline 8"]
+
     # endregion
