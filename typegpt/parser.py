@@ -19,7 +19,7 @@ class Parser(Generic[_Output]):
         from .utils.type_checker import if_response_type, is_response_type, is_array_element_list_type, if_array_element_list_type
 
         other_fields = [f for f in self.fields if f.key != field.key]
-        other_field_names = ["\n" + f.name for f in other_fields]
+        other_field_names = ["^" + f.name for f in other_fields]
 
         excluded_lookahead = other_field_names
 
@@ -69,7 +69,7 @@ class Parser(Generic[_Output]):
 
             if isinstance(field.info, LLMOutputInfo) or isinstance(field.info, LLMArrayElementOutputInfo):
                 if field_type := if_response_type(field.type_):
-                    matches = re.finditer(pattern, response)
+                    matches = re.finditer(pattern, response, re.MULTILINE)
                     inner_response = "\n".join(f"{m.group('subfield_name')}: {m.group('content')}" for m in matches)
 
                     if field.info.required:
@@ -81,7 +81,7 @@ class Parser(Generic[_Output]):
                             pass
 
                 else:
-                    match = re.search(pattern, response)
+                    match = re.search(pattern, response, re.MULTILINE)
                     if match:
                         field_values[field.key] = symmetric_strip(match.group("content").strip(), ["'", '"', "`"]).strip()
                     else:
@@ -90,7 +90,7 @@ class Parser(Generic[_Output]):
 
             elif isinstance(field.info, LLMArrayOutputInfo):
                 if field_type := if_array_element_list_type(field.type_):
-                    matches = re.finditer(pattern, response)
+                    matches = re.finditer(pattern, response, re.MULTILINE)
                     inner_responses: dict[int, str] = {}
                     for m in matches:
                         i = int(m.group("i"))
@@ -109,7 +109,7 @@ class Parser(Generic[_Output]):
                     field_values[field.key] = array_items
 
                 else:
-                    matches = re.finditer(pattern, response)
+                    matches = re.finditer(pattern, response, re.MULTILINE)
                     items: list[str] = [m.group("content").strip() for m in matches]
                     items = [symmetric_strip(item, ["'", '"', "`"]).strip() for item in items]
                     items = [i for i in items if i]
