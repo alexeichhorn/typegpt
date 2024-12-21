@@ -34,33 +34,29 @@ class AsyncTypeOpenAI(AsyncOpenAI):
         default_query: Mapping[str, object] | None = None,
         # Configure a custom httpx client. See the [httpx documentation](https://www.python-httpx.org/api/#asyncclient) for more details.
         http_client: httpx.AsyncClient | None = None,
+        # Support for newer OpenAI models
+        websocket_base_url: str | httpx.URL | None = None,
         # only needed to have same subclass capabilities (i.e. for Azure)
         _strict_response_validation: bool = False,
     ) -> None:
         init_signature = inspect.signature(super.__init__)
+        init_params = {
+            "api_key": api_key,
+            "organization": organization,
+            "base_url": base_url,
+            "timeout": timeout,
+            "max_retries": max_retries,
+            "default_headers": default_headers,
+            "default_query": default_query,
+            "http_client": http_client,
+        }
+
         if "project" in init_signature.parameters:  # openai version >= 1.20.0
-            super().__init__(
-                api_key=api_key,
-                organization=organization,
-                project=project,
-                base_url=base_url,
-                timeout=timeout,
-                max_retries=max_retries,
-                default_headers=default_headers,
-                default_query=default_query,
-                http_client=http_client,
-            )
-        else:
-            super().__init__(
-                api_key=api_key,
-                organization=organization,
-                base_url=base_url,
-                timeout=timeout,
-                max_retries=max_retries,
-                default_headers=default_headers,
-                default_query=default_query,
-                http_client=http_client,
-            )
+            init_params["project"] = project
+        if "websocket_base_url" in init_signature.parameters:  # openai version with websocket support
+            init_params["websocket_base_url"] = websocket_base_url
+
+        super().__init__(**init_params)
         self.chat = AsyncTypeChat(self)
 
 
