@@ -28,8 +28,13 @@ class BaseChatCompletions:
                 | "gpt-4o"
                 | "gpt-4o-2024-05-13"
                 | "gpt-4o-2024-08-06"
+                | "gpt-4o-2024-11-20"
                 | "gpt-4o-mini"
                 | "gpt-4o-mini-2024-07-18"
+                | "o1"
+                | "o1-2024-12-17"
+                | "o1-mini"
+                | "o1-mini-2024-09-12"
             ):
                 return 128_000
 
@@ -43,8 +48,8 @@ class BaseChatCompletions:
         try:
             encoding = tiktoken.encoding_for_model(model)
         except KeyError:
-            print("Warning: model not found. Using cl100k_base encoding.")
-            encoding = tiktoken.get_encoding("cl100k_base")
+            print("Warning: model not found. Using o200k_base encoding.")
+            encoding = tiktoken.get_encoding("o200k_base")
         if model == "gpt-3.5-turbo":
             return cls.num_tokens_from_messages(messages, model="gpt-3.5-turbo-0125")
         elif model == "gpt-3.5-turbo-16k":
@@ -74,8 +79,13 @@ class BaseChatCompletions:
             "gpt-4o",
             "gpt-4o-2024-05-13",
             "gpt-4o-2024-08-06",
+            "gpt-4o-2024-11-20",
             "gpt-4o-mini",
             "gpt-4o-mini-2024-07-18",
+            "o1",
+            "o1-2024-12-17",
+            "o1-mini",
+            "o1-mini-2024-09-12",
         ):
             tokens_per_message = 3
             tokens_per_name = 1
